@@ -19,7 +19,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
-
+app.use(express.static(path.join(__dirname, 'public')));
 // Variable global de usuario para las vistas
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;

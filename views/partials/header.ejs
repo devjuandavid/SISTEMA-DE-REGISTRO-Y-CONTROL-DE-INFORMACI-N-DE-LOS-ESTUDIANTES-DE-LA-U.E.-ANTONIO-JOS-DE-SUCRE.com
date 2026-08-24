@@ -10,14 +10,17 @@
 <% if (user) { %>
 <nav class="bg-blue-900 text-white shadow-md">
     <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-16">
-        <span class="font-bold text-lg">U.E. Antonio José de Sucre</span>
-        <div class="space-x-4">
-            <a href="/dashboard" class="hover:bg-blue-800 px-3 py-2 rounded">Inicio</a>
-            <a href="/estudiantes" class="hover:bg-blue-800 px-3 py-2 rounded">Estudiantes</a>
-            <a href="/asistencia" class="hover:bg-blue-800 px-3 py-2 rounded">Asistencia</a>
-            <a href="/notas" class="hover:bg-blue-800 px-3 py-2 rounded">Notas</a>
-            <a href="/reportes" class="hover:bg-blue-800 px-3 py-2 rounded">Reportes</a>
-            <a href="/logout" class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded font-semibold">Cerrar Sesión</a>
+        <div class="flex items-center gap-3">
+            <div class="w-1.5 h-6 bg-white rounded-full"></div>
+            <span class="font-bold text-lg tracking-wide">U.E. Antonio José de Sucre</span>
+        </div>
+        <div class="space-x-2 text-sm font-medium">
+            <a href="/dashboard" class="hover:bg-blue-800 px-3 py-2 rounded transition">Inicio</a>
+            <a href="/estudiantes" class="hover:bg-blue-800 px-3 py-2 rounded transition">Estudiantes</a>
+            <a href="/asistencia" class="hover:bg-blue-800 px-3 py-2 rounded transition">Asistencia</a>
+            <a href="/notas" class="hover:bg-blue-800 px-3 py-2 rounded transition">Notas</a>
+            <a href="/reportes" class="hover:bg-blue-800 px-3 py-2 rounded transition">Reportes</a>
+            <a href="/logout" class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded font-bold transition">Cerrar Sesión</a>
         </div>
     </div>
 </nav>
