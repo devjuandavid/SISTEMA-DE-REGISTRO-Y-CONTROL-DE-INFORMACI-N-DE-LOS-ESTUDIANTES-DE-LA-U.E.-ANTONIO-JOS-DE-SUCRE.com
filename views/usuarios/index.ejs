@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal / Usuarios - U.E. Antonio José de Sucre</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f6f9; }
+        .navbar-custom { background-color: #0d233a; }
+        .card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+    <!-- Navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom mb-4">
+        <div class="container-fluid">
+            <a class="navbar-link navbar-brand fw-bold ms-3" href="/"><i class="fas fa-school me-2"></i>U.E. ANTONIO JOSÉ DE SUCRE</a>
+            <div class="collapse navbar-collapse id="navbarNav"">
+                <ul class="navbar-nav ms-auto me-3">
+                    <li class="nav-item"><a class="nav-link" href="/"><i class="fas fa-home me-1"></i>Inicio</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/estudiantes"><i class="fas fa-user-graduate me-1"></i>Estudiantes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/cursos"><i class="fas fa-chalkboard me-1"></i>Cursos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/materias"><i class="fas fa-book me-1"></i>Materias</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/usuarios"><i class="fas fa-users-cog me-1"></i>Personal / Usuarios</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/asistencias"><i class="fas fa-calendar-check me-1"></i>Asistencia</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/centralizador"><i class="fas fa-file-alt me-1"></i>Centralizador</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/reportes"><i class="fas fa-chart-bar me-1"></i>Reportes</a></li>
+                    <li class="nav-item"><a class="nav-link btn btn-danger btn-sm text-white px-3 ms-2" href="/auth/logout"><i class="fas fa-sign-out-alt me-1"></i>Salir</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2><i class="fas fa-users-cog text-primary me-2"></i>Gestión de Personal / Usuarios</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoUsuario">
+                <i class="fas fa-user-plus me-1"></i> Nuevo Usuario
+            </button>
+        </div>
+
+        <!-- Tabla de Usuarios -->
+        <div class="card p-3">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nº</th>
+                            <th>Nombre Completo</th>
+                            <th>Correo Electrónico</th>
+                            <th>Rol</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (usuarios && usuarios.length > 0) { %>
+                            <% usuarios.forEach((user, index) => { %>
+                                <tr>
+                                    <td><%= index + 1 %></td>
+                                    <td class="fw-bold"><%= user.nombre %></td>
+                                    <td><%= user.email %></td>
+                                    <td>
+                                        <span class="badge <%= user.rol === 'ADMIN' ? 'bg-danger' : 'bg-success' %>">
+                                            <%= user.rol %>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-warning me-1" 
+                                                onclick="editarUsuario('<%= user.id %>', '<%= user.nombre %>', '<%= user.email %>', '<%= user.rol %>')">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <form action="/usuarios/eliminar/<%= user.id %>" method="POST" class="d-inline" onsubmit="return confirm('¿Seguro que deseas eliminar este usuario?')">
+                                            <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No hay usuarios registrados.</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Registrar Usuario -->
+    <div class="modal fade" id="modalNuevoUsuario" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/usuarios/crear" method="POST">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Nuevo Usuario</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre Completo</label>
+                            <input type="text" name="nombre" class="form-control" required placeholder="Ej. Prof. Juan Pérez">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Correo Electrónico</label>
+                            <input type="email" name="email" class="form-control" required placeholder="ejemplo@sucre.edu.bo">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña</label>
+                            <input type="password" name="password" class="form-control" required placeholder="******">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rol</label>
+                            <select name="rol" class="form-select" required>
+                                <option value="PROFESOR" selected>PROFESOR</option>
+                                <option value="ADMIN">ADMINISTRADOR</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Usuario -->
+    <div class="modal fade" id="modalEditarUsuario" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="formEditarUsuario" action="" method="POST">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title"><i class="fas fa-user-edit me-2"></i>Editar Usuario</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre Completo</label>
+                            <input type="text" id="edit_nombre" name="nombre" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Correo Electrónico</label>
+                            <input type="email" id="edit_email" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nueva Contraseña (Opcional)</label>
+                            <input type="password" name="password" class="form-control" placeholder="Dejar en blanco para mantener la actual">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rol</label>
+                            <select id="edit_rol" name="rol" class="form-select" required>
+                                <option value="PROFESOR">PROFESOR</option>
+                                <option value="ADMIN">ADMINISTRADOR</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Actualizar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function editarUsuario(id, nombre, email, rol) {
+            document.getElementById('formEditarUsuario').action = '/usuarios/editar/' + id;
+            document.getElementById('edit_nombre').value = nombre;
+            document.getElementById('edit_email').value = email;
+            document.getElementById('edit_rol').value = rol;
+            new bootstrap.Modal(document.getElementById('modalEditarUsuario')).show();
+        }
+    </script>
+</body>
+</html>
