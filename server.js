@@ -3,7 +3,7 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 
-// 1. Inicializar Express primero
+// 1. Inicializar Express
 const app = express();
 
 // 2. Middlewares de datos y estáticos
@@ -29,13 +29,20 @@ app.use((req, res, next) => {
 });
 
 // 6. Registrar Rutas del Sistema
+const asistenciasRoutes = require('./routes/asistencias');
+
 app.use('/auth', require('./routes/auth'));
 app.use('/estudiantes', require('./routes/estudiantes'));
 app.use('/cursos', require('./routes/cursos'));
 app.use('/materias', require('./routes/materias'));
 app.use('/usuarios', require('./routes/usuarios'));
-app.use('/asistencia', require('./routes/asistencia'));
+
+// Soporta tanto /asistencias como /asistencia para evitar el error Cannot GET
+app.use('/asistencias', asistenciasRoutes);
+app.use('/asistencia', asistenciasRoutes);
+
 app.use('/notas', require('./routes/notas'));
+app.use('/centralizador', require('./routes/notas')); // Alias si usas /centralizador en la nav
 app.use('/reportes', require('./routes/reportes'));
 
 // 7. Redirección inicial al Login
