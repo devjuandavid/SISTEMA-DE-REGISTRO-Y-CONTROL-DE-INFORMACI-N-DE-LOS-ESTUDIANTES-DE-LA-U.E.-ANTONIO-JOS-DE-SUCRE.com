@@ -119,15 +119,19 @@ const inicializarBaseDeDatos = async () => {
             END $$;
         `);
 
-        // Insertar o resetear contraseña del administrador por defecto
+        // Insertar o resincronizar contraseña del admin evitando colisiones de índices
         await pool.query(`
-            INSERT INTO usuarios (nombre, email, password, rol, usuario) 
-            VALUES ('Administrador', 'admin@sucre.edu.bo', 'admin123', 'ADMIN', 'admin')
-            ON CONFLICT (email) 
-            DO UPDATE SET 
-                password = 'admin123', 
-                usuario = 'admin', 
-                rol = 'ADMIN';
+            DO $$ 
+            BEGIN
+                IF EXISTS (SELECT 1 FROM usuarios WHERE usuario = 'admin' OR email = 'admin@sucre.edu.bo') THEN
+                    UPDATE usuarios 
+                    SET password = 'admin123', usuario = 'admin', email = 'admin@sucre.edu.bo', rol = 'ADMIN' 
+                    WHERE usuario = 'admin' OR email = 'admin@sucre.edu.bo';
+                ELSE
+                    INSERT INTO usuarios (nombre, email, password, rol, usuario) 
+                    VALUES ('Administrador', 'admin@sucre.edu.bo', 'admin123', 'ADMIN', 'admin');
+                END IF;
+            END $$;
         `);
 
         console.log('✅ Base de datos 100% sincronizada.');
