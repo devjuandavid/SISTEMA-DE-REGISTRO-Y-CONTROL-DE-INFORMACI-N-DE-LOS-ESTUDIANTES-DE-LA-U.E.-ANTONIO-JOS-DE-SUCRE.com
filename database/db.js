@@ -94,7 +94,7 @@ const inicializarBaseDeDatos = async () => {
             );
         `);
 
-        // 7. Modificaciones preventivas (Corrige esquemas viejos en PostgreSQL)
+        // 7. Modificaciones preventivas (Quitar NOT NULL a campos antiguos y agregar columnas)
         await pool.query(`
             ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_nombre VARCHAR(150);
             ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_ci VARCHAR(20);
@@ -104,6 +104,9 @@ const inicializarBaseDeDatos = async () => {
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email VARCHAR(100);
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS password VARCHAR(255);
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS rol VARCHAR(20) DEFAULT 'PROFESOR';
+            
+            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS usuario VARCHAR(100);
+            ALTER TABLE usuarios ALTER COLUMN usuario DROP NOT NULL;
         `);
 
         // Asegurar restricción UNIQUE en email
@@ -116,10 +119,10 @@ const inicializarBaseDeDatos = async () => {
             END $$;
         `);
 
-        // Admin por defecto
+        // Admin por defecto (incluye 'usuario' por compatibilidad)
         await pool.query(`
-            INSERT INTO usuarios (nombre, email, password, rol) 
-            VALUES ('Administrador', 'admin@sucre.edu.bo', 'admin123', 'ADMIN')
+            INSERT INTO usuarios (nombre, email, password, rol, usuario) 
+            VALUES ('Administrador', 'admin@sucre.edu.bo', 'admin123', 'ADMIN', 'admin')
             ON CONFLICT (email) DO NOTHING;
         `);
 
