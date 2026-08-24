@@ -11,39 +11,31 @@ router.post('/login', async (req, res) => {
     const { usuario, password } = req.body;
     try {
         const result = await db.query('SELECT * FROM usuarios WHERE usuario = $1', [usuario]);
+        if (result.rows.length === 0) {
+            return res.render('login', { error: 'Usuario no encontrado' });
+        }
         const user = result.rows[0];
-
-        if (!user || !bcrypt.compareSync(password, user.password)) {
-            return res.render('login', { error: 'Usuario o contraseña incorrectos' });
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) {
+            return res.render('login', { error: 'Contraseña incorrecta' });
         }
 
-        req.session.user = user;
+        req.session.user = {
+            id: user.id,
+            usuario: user.usuario,
+            nombre_completo: user.nombre_completo,
+            rol: user.rol
+        };
         res.redirect('/dashboard');
     } catch (err) {
-        res.render('login', { error: 'Error al conectar con la base de datos' });
-    }
-});
-
-router.get('/dashboard', async (req, res) => {
-    if (!req.session.user) return res.redirect('/login');
-
-    try {
-        const estCount = await db.query('SELECT COUNT(*) FROM estudiantes');
-        const curCount = await db.query('SELECT COUNT(*) FROM cursos');
-
-        res.render('dashboard', {
-            totalEstudiantes: estCount.rows[0].count,
-            totalCursos: curCount.rows[0].count
-        });
-    } catch (err) {
-        res.render('dashboard', { totalEstudiantes: 0, totalCursos: 0 });
+        console.error(err);
+        res.render('login', { error: 'Error en el servidor' });
     }
 });
 
 router.get('/logout', (req, res) => {
-    req.session.destroy(() => {
-        res.redirect('/login');
-    });
+    req.session.destroy();
+    res.redirect('/login');
 });
 
 module.exports = router;
