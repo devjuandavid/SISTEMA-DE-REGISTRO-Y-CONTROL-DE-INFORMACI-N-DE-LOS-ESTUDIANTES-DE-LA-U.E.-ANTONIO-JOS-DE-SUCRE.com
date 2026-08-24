@@ -1,54 +1,40 @@
-<%- include('../partials/header') %>
-<div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold text-gray-800">Lista de Estudiantes</h1>
-    <a href="/estudiantes/nuevo" class="bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-800 font-semibold">+ Nuevo Estudiante</a>
-</div>
+<%- include('partials/header') %>
 
-<form method="GET" action="/estudiantes" class="mb-6 flex gap-4 bg-white p-4 rounded shadow">
-    <input type="text" name="buscar" value="<%= buscar %>" placeholder="Buscar por Nombre, RUDE o CI..." class="border rounded px-3 py-2 w-full max-w-sm">
-    <select name="estado" class="border rounded px-3 py-2">
-        <option value="">Todos los Estados</option>
-        <option value="Activo" <%= estado === 'Activo' ? 'selected' : '' %>>Activo</option>
-        <option value="Retirado" <%= estado === 'Retirado' ? 'selected' : '' %>>Retirado</option>
-        <option value="Trasladado" <%= estado === 'Trasladado' ? 'selected' : '' %>>Trasladado</option>
-    </select>
-    <button type="submit" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 font-medium">Filtrar</button>
-</form>
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-xl font-bold text-gray-800">Lista de Estudiantes (RUDE)</h1>
+    </div>
 
-<div class="bg-white rounded-lg shadow overflow-x-auto">
-    <table class="w-full text-left border-collapse">
-        <thead>
-            <tr class="bg-gray-200 text-gray-700 border-b">
-                <th class="p-3">Nº</th>
-                <th class="p-3">RUDE</th>
-                <th class="p-3">CI</th>
-                <th class="p-3">Nombre Completo</th>
-                <th class="p-3">Curso</th>
-                <th class="p-3">Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% estudiantes.forEach((est, index) => { %>
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="p-3"><%= index + 1 %></td>
-                    <td class="p-3 font-mono text-sm"><%= est.rude %></td>
-                    <td class="p-3"><%= est.ci %></td>
-                    <td class="p-3 font-medium"><%= est.apellidos %> <%= est.nombres %></td>
-                    <td class="p-3"><%= est.grado %> "<%= est.paralelo %>" (<%= est.turno %>)</td>
-                    <td class="p-3">
-                        <span class="px-2 py-1 text-xs rounded font-semibold 
-                            <%= est.estado === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
-                            <%= est.estado %>
-                        </span>
-                    </td>
-                </tr>
-            <% }) %>
-            <% if(estudiantes.length === 0) { %>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-600">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-100">
                 <tr>
-                    <td colspan="6" class="p-4 text-center text-gray-500">No hay estudiantes registrados.</td>
+                    <th class="py-3 px-4">RUDE</th>
+                    <th class="py-3 px-4">CI</th>
+                    <th class="py-3 px-4">Apellidos y Nombres</th>
+                    <th class="py-3 px-4">Género</th>
+                    <th class="py-3 px-4">Curso</th>
                 </tr>
-            <% } %>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                <% if (estudiantes && estudiantes.length > 0) { %>
+                    <% estudiantes.forEach(e => { %>
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="py-3 px-4"><%= e.rude || 'S/R' %></td>
+                            <td class="py-3 px-4"><%= e.ci || 'S/C' %></td>
+                            <td class="py-3 px-4 font-semibold"><%= e.apellidos %> <%= e.nombres %></td>
+                            <td class="py-3 px-4"><%= e.genero %></td>
+                            <td class="py-3 px-4"><%= e.curso_nombre || 'Sin Asignar' %></td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="5" class="py-4 text-center text-gray-500">No hay estudiantes registrados.</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
 </div>
-<%- include('../partials/footer') %>
+
+<%- include('partials/footer') %>
