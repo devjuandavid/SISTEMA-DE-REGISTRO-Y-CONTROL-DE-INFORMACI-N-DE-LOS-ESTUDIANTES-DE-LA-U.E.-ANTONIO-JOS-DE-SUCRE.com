@@ -109,7 +109,16 @@ const initDb = async () => {
             ALTER TABLE notas ADD COLUMN IF NOT EXISTS nota_trimestral NUMERIC(5,2) DEFAULT 0;
             ALTER TABLE notas ADD COLUMN IF NOT EXISTS cualitativo TEXT;
         `);
-
+        await pool.query(`
+            DO $$ 
+            BEGIN 
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_constraint WHERE conname = 'unique_nota_estudiante'
+                ) THEN 
+                    ALTER TABLE notas ADD CONSTRAINT unique_nota_estudiante UNIQUE (estudiante_id, materia_id, trimestre);
+                END IF;
+            END $$;
+        `);
         // Usuarios iniciales
         const passAdmin = bcrypt.hashSync('admin123', 10);
         await pool.query(`

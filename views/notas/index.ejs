@@ -1,89 +1,124 @@
 <%- include('../partials/header') %>
 
-<div class="space-y-4">
-    <div class="bg-white p-4 rounded-lg shadow border">
-        <form method="GET" action="/notas" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-            <div>
-                <label class="block text-xs font-bold text-gray-700">Curso</label>
-                <select name="curso_id" required class="w-full border p-2 rounded text-sm">
-                    <option value="">Seleccionar Curso</option>
-                    <% cursos.forEach(c => { %>
-                        <option value="<%= c.id %>" <%= curso_id == c.id ? 'selected' : '' %>><%= c.grado %> <%= c.paralelo %> (<%= c.turno %>)</option>
-                    <% }) %>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700">Materia</label>
-                <select name="materia_id" required class="w-full border p-2 rounded text-sm">
-                    <option value="">Seleccionar Materia</option>
-                    <% materias.forEach(m => { %>
-                        <option value="<%= m.id %>" <%= materia_id == m.id ? 'selected' : '' %>><%= m.nombre %></option>
-                    <% }) %>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-700">Trimestre</label>
-                <select name="trimestre" required class="w-full border p-2 rounded text-sm">
-                    <option value="1" <%= trimestre == '1' ? 'selected' : '' %>>Primer Trimestre</option>
-                    <option value="2" <%= trimestre == '2' ? 'selected' : '' %>>Segundo Trimestre</option>
-                    <option value="3" <%= trimestre == '3' ? 'selected' : '' %>>Tercer Trimestre</option>
-                </select>
-            </div>
-            <button type="submit" class="bg-blue-900 text-white font-bold p-2 rounded text-sm hover:bg-blue-800">Cargar Planilla</button>
-        </form>
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-file-signature text-blue-600 mr-2"></i> Registro de Evaluaciones y Calificaciones</h2>
     </div>
 
-    <% if (planilla.length > 0) { %>
-    <form action="/notas/guardar" method="POST" class="bg-white p-4 rounded-lg shadow border overflow-x-auto">
-        <input type="hidden" name="curso_id" value="<%= curso_id %>">
-        <input type="hidden" name="materia_id" value="<%= materia_id %>">
-        <input type="hidden" name="trimestre" value="<%= trimestre %>">
-
-        <table class="w-full text-xs text-center border-collapse border border-gray-300">
-            <thead>
-                <tr class="bg-gray-200">
-                    <th rowspan="2" class="border p-1">Nº</th>
-                    <th rowspan="2" class="border p-1 text-left">Apellidos y Nombres</th>
-                    <th colspan="4" class="border p-1 bg-yellow-100">Asistencia</th>
-                    <th class="border p-1 bg-green-100">SER (10)</th>
-                    <th class="border p-1 bg-blue-100">SABER (45)</th>
-                    <th class="border p-1 bg-orange-100">HACER (40)</th>
-                    <th class="border p-1 bg-purple-100">AUTOEVAL. (5)</th>
-                    <th rowspan="2" class="border p-1 bg-gray-300 font-bold">NOTA TRIM.</th>
-                    <th rowspan="2" class="border p-1">Apreciación Cualitativa</th>
-                </tr>
-                <tr class="bg-gray-100">
-                    <th class="border p-1">A</th><th class="border p-1">F</th><th class="border p-1">R</th><th class="border p-1">L</th>
-                    <th class="border p-1">Nota</th><th class="border p-1">Nota</th><th class="border p-1">Nota</th><th class="border p-1">Nota</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% planilla.forEach((p, idx) => { %>
-                    <tr class="hover:bg-gray-50">
-                        <td class="border p-1"><%= idx + 1 %></td>
-                        <td class="border p-1 text-left font-bold"><%= p.apellidos %> <%= p.nombres %></td>
-                        <td class="border p-1 text-green-700 font-bold"><%= p.asistencia %></td>
-                        <td class="border p-1 text-red-600 font-bold"><%= p.faltas %></td>
-                        <td class="border p-1 text-yellow-600 font-bold"><%= p.retrasos %></td>
-                        <td class="border p-1 text-blue-600 font-bold"><%= p.licencias %></td>
-                        
-                        <td class="border p-1"><input type="number" step="0.1" max="10" name="notas[<%= p.estudiante_id %>][ser]" value="<%= p.ser %>" class="w-12 text-center border rounded"></td>
-                        <td class="border p-1"><input type="number" step="0.1" max="45" name="notas[<%= p.estudiante_id %>][saber]" value="<%= p.saber %>" class="w-12 text-center border rounded"></td>
-                        <td class="border p-1"><input type="number" step="0.1" max="40" name="notas[<%= p.estudiante_id %>][hacer]" value="<%= p.hacer %>" class="w-12 text-center border rounded"></td>
-                        <td class="border p-1"><input type="number" step="0.1" max="5" name="notas[<%= p.estudiante_id %>][autoevaluacion]" value="<%= p.autoevaluacion %>" class="w-12 text-center border rounded"></td>
-                        
-                        <td class="border p-1 font-bold text-sm bg-gray-100"><%= p.nota_trimestral %></td>
-                        <td class="border p-1"><input type="text" name="notas[<%= p.estudiante_id %>][cualitativo]" value="<%= p.cualitativo %>" class="w-full border px-1 rounded"></td>
-                    </tr>
+    <!-- Filtros de selección -->
+    <form method="GET" action="/notas" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-gray-50 p-4 rounded-lg border">
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Curso:</label>
+            <select name="curso_id" class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500" required>
+                <option value="">-- Seleccionar Curso --</option>
+                <% cursos.forEach(c => { %>
+                    <option value="<%= c.id %>" <%= curso_id == c.id ? 'selected' : '' %>><%= c.grado %> <%= c.paralelo %> (<%= c.nivel %>)</option>
                 <% }) %>
-            </tbody>
-        </table>
+            </select>
+        </div>
 
-        <div class="mt-4 flex justify-end">
-            <button type="submit" class="bg-green-700 text-white font-bold px-6 py-2 rounded text-sm hover:bg-green-600">Guardar Calificaciones</button>
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Materia:</label>
+            <select name="materia_id" class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500" required>
+                <option value="">-- Seleccionar Materia --</option>
+                <% materias.forEach(m => { %>
+                    <option value="<%= m.id %>" <%= materia_id == m.id ? 'selected' : '' %>><%= m.nombre %></option>
+                <% }) %>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Trimestre:</label>
+            <select name="trimestre" class="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500">
+                <option value="1" <%= trimestre == 1 ? 'selected' : '' %>>1er Trimestre</option>
+                <option value="2" <%= trimestre == 2 ? 'selected' : '' %>>2do Trimestre</option>
+                <option value="3" <%= trimestre == 3 ? 'selected' : '' %>>3er Trimestre</option>
+            </select>
+        </div>
+
+        <div class="flex items-end">
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+                <i class="fas fa-search mr-2"></i> Cargar Estudiantes
+            </button>
         </div>
     </form>
+
+    <% if (curso_id && materia_id) { %>
+        <% if (estudiantes.length > 0) { %>
+            <form action="/notas/guardar" method="POST">
+                <input type="hidden" name="curso_id" value="<%= curso_id %>">
+                <input type="hidden" name="materia_id" value="<%= materia_id %>">
+                <input type="hidden" name="trimestre" value="<%= trimestre %>">
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse border border-gray-300">
+                        <thead>
+                            <tr class="bg-gray-800 text-white text-xs uppercase">
+                                <th class="p-2 border">N°</th>
+                                <th class="p-2 border">Apellidos y Nombres</th>
+                                <th class="p-2 border text-center">SER (10)</th>
+                                <th class="p-2 border text-center">SABER (35)</th>
+                                <th class="p-2 border text-center">HACER (35)</th>
+                                <th class="p-2 border text-center">AUTOEV. (20)</th>
+                                <th class="p-2 border text-center">NOTA TRIM. (100)</th>
+                                <th class="p-2 border">Apreciación Cualitativa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% estudiantes.forEach((est, index) => { %>
+                                <tr class="border-b hover:bg-gray-50 text-sm">
+                                    <td class="p-2 border text-center font-bold"><%= index + 1 %></td>
+                                    <td class="p-2 border font-medium"><%= est.apellidos %> <%= est.nombres %></td>
+                                    <td class="p-2 border">
+                                        <input type="number" min="0" max="10" step="0.5" name="notas[<%= est.estudiante_id %>][ser]" value="<%= est.ser %>" class="w-16 border rounded p-1 text-center ser-val" oninput="calcularTotal(this)">
+                                    </td>
+                                    <td class="p-2 border">
+                                        <input type="number" min="0" max="35" step="0.5" name="notas[<%= est.estudiante_id %>][saber]" value="<%= est.saber %>" class="w-16 border rounded p-1 text-center saber-val" oninput="calcularTotal(this)">
+                                    </td>
+                                    <td class="p-2 border">
+                                        <input type="number" min="0" max="35" step="0.5" name="notas[<%= est.estudiante_id %>][hacer]" value="<%= est.hacer %>" class="w-16 border rounded p-1 text-center hacer-val" oninput="calcularTotal(this)">
+                                    </td>
+                                    <td class="p-2 border">
+                                        <input type="number" min="0" max="20" step="0.5" name="notas[<%= est.estudiante_id %>][autoevaluacion]" value="<%= est.autoevaluacion %>" class="w-16 border rounded p-1 text-center auto-val" oninput="calcularTotal(this)">
+                                    </td>
+                                    <td class="p-2 border text-center font-bold text-lg text-blue-700 total-val">
+                                        <%= est.nota_trimestral %>
+                                    </td>
+                                    <td class="p-2 border">
+                                        <input type="text" name="notas[<%= est.estudiante_id %>][cualitativo]" value="<%= est.cualitativo %>" placeholder="Observaciones cualitativas..." class="w-full border rounded p-1 text-xs">
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded shadow-lg transition">
+                        <i class="fas fa-save mr-2"></i> Guardar Calificaciones
+                    </button>
+                </div>
+            </form>
+        <% } else { %>
+            <div class="text-center py-8 bg-yellow-50 text-yellow-800 rounded border border-yellow-200">
+                <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+                <p>No se encontraron estudiantes registrados en el curso seleccionado.</p>
+            </div>
+        <% } %>
     <% } %>
 </div>
+
+<script>
+function calcularTotal(input) {
+    const row = input.closest('tr');
+    const ser = parseFloat(row.querySelector('.ser-val').value) || 0;
+    const saber = parseFloat(row.querySelector('.saber-val').value) || 0;
+    const hacer = parseFloat(row.querySelector('.hacer-val').value) || 0;
+    const auto = parseFloat(row.querySelector('.auto-val').value) || 0;
+    
+    const total = ser + saber + hacer + auto;
+    row.querySelector('.total-val').innerText = total.toFixed(0);
+}
+</script>
 
 <%- include('../partials/footer') %>

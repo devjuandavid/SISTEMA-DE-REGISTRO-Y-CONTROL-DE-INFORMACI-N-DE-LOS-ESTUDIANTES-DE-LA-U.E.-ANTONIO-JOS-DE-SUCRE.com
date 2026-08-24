@@ -3,20 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Escolar</title>
+    <title>U.E. Antonio José de Sucre - Sistema de Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
     <nav class="bg-blue-900 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <a href="/dashboard" class="font-bold text-lg">SISTEMA ESCOLAR</a>
-            <div class="flex items-center gap-4 text-sm">
-                <a href="/dashboard" class="hover:text-blue-200">Inicio</a>
-                <a href="/estudiantes" class="hover:text-blue-200">Estudiantes</a>
-                <a href="/notas" class="hover:text-blue-200">Notas</a>
-                <a href="/configuracion" class="hover:text-blue-200">Configuración</a>
-                <a href="/logout" class="bg-red-600 px-3 py-1 rounded hover:bg-red-700">Salir</a>
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-school text-2xl text-yellow-400"></i>
+                    <span class="font-bold text-lg tracking-wide">U.E. ANTONIO JOSÉ DE SUCRE</span>
+                </div>
+                <div class="flex items-center space-x-4 text-sm font-medium">
+                    <a href="/dashboard" class="hover:bg-blue-800 px-3 py-2 rounded"><i class="fas fa-chart-line mr-1"></i> Inicio</a>
+                    <a href="/estudiantes" class="hover:bg-blue-800 px-3 py-2 rounded"><i class="fas fa-user-graduate mr-1"></i> Estudiantes</a>
+                    <a href="/asistencia" class="hover:bg-blue-800 px-3 py-2 rounded"><i class="fas fa-calendar-check mr-1"></i> Asistencia</a>
+                    <a href="/notas" class="hover:bg-blue-800 px-3 py-2 rounded"><i class="fas fa-edit mr-1"></i> Notas</a>
+                    <a href="/reportes" class="hover:bg-blue-800 px-3 py-2 rounded"><i class="fas fa-print mr-1"></i> Reportes</a>
+                    <a href="/auth/logout" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded transition"><i class="fas fa-sign-out-alt mr-1"></i> Salir</a>
+                </div>
             </div>
         </div>
     </nav>
-    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+    <div class="max-w-7xl mx-auto px-4 py-6 w-full flex-grow">
