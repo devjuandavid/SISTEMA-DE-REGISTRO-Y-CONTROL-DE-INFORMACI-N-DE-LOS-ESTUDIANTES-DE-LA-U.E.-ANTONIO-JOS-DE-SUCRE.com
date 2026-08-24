@@ -36,6 +36,9 @@ const crearMateriaHandler = async (req, res) => {
         const cursoValido = curso_id && curso_id !== '' ? curso_id : null;
         const profesorValido = profesor_id && profesor_id !== '' ? profesor_id : null;
 
+        // Resincronizar la secuencia de IDs para prevenir errores de la llave primaria materias_pkey
+        await db.query("SELECT setval('materias_id_seq', COALESCE((SELECT MAX(id) FROM materias), 0) + 1, false)");
+
         await db.query(
             'INSERT INTO materias (nombre, curso_id, profesor_id) VALUES ($1, $2, $3)',
             [nombre, cursoValido, profesorValido]
