@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../database/db');
 
 router.get('/login', (req, res) => {
-    res.render('auth/login', { error: null });
+    res.render('login', { error: null });
 });
 
 router.post('/login', async (req, res) => {

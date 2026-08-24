@@ -101,6 +101,11 @@ const inicializarBaseDeDatos = async () => {
             ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_telefono VARCHAR(20);
         `);
 
+        // Asegurar que la columna 'nombre' exista si la tabla se creó previamente
+        await pool.query(`
+            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nombre VARCHAR(100);
+        `);
+
         // Admin por defecto
         await pool.query(`
             INSERT INTO usuarios (nombre, email, password, rol) 
