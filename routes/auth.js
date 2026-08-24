@@ -8,14 +8,22 @@ router.get('/login', (req, res) => {
 
 router.post('/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
-        const result = await db.query('SELECT * FROM usuarios WHERE email = $1 AND password = $2', [email, password]);
+        // En login.ejs el input tiene name="usuario"
+        const { usuario, password } = req.body;
+        
+        // Busca coincidencia por email o por el nombre de usuario (ej: 'admin' o 'admin@sucre.edu.bo')
+        const result = await db.query(
+            'SELECT * FROM usuarios WHERE (email = $1 OR usuario = $1) AND password = $2', 
+            [usuario, password]
+        );
         
         if (result.rows.length > 0) {
             req.session.usuario = result.rows[0];
             return res.redirect('/estudiantes');
         }
-        res.render('auth/login', { error: 'Credenciales incorrectas' });
+
+        // Se corrigió 'auth/login' por 'login'
+        res.render('login', { error: 'Credenciales incorrectas' });
     } catch (err) {
         console.error(err);
         res.status(500).send('Error en inicio de sesión');
