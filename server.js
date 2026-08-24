@@ -26,7 +26,7 @@ app.use((req, res, next) => {
     res.locals.usuario = req.session.usuario || null;
     next();
 });
-
+app.use(express.urlencoded({ extended: true }));
 // Importar y Registrar Rutas
 app.use('/auth', require('./routes/auth'));
 app.use('/estudiantes', require('./routes/estudiantes'));
@@ -38,7 +38,7 @@ app.use('/notas', require('./routes/notas'));
 app.use('/reportes', require('./routes/reportes'));
 
 // Redirección inicial al Login
-app.get('/', (req, res) => res.redirect('/auth/login'));
+app.get('/', (req, res) => res.redirect('login'));
 
 // Puerto y Arranque
 const PORT = process.env.PORT || 10000;
