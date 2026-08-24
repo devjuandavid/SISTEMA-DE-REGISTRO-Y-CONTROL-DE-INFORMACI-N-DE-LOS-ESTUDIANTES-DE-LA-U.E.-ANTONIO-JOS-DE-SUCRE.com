@@ -104,9 +104,10 @@ const inicializarBaseDeDatos = async () => {
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email VARCHAR(100);
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS password VARCHAR(255);
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS rol VARCHAR(20) DEFAULT 'PROFESOR';
-            
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS usuario VARCHAR(100);
             ALTER TABLE usuarios ALTER COLUMN usuario DROP NOT NULL;
+
+            ALTER TABLE cursos ADD COLUMN IF NOT EXISTS sie VARCHAR(20) DEFAULT '70620085';
         `);
 
         // Asegurar restricción UNIQUE en email
