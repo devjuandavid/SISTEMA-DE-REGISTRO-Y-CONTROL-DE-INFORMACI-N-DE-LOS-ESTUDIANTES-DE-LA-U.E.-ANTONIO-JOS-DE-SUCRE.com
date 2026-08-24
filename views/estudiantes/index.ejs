@@ -17,6 +17,7 @@
                     <th class="p-3 border">Apellidos y Nombres</th>
                     <th class="p-3 border text-center">Género</th>
                     <th class="p-3 border">Curso</th>
+                    <th class="p-3 border">Tutor</th>
                     <th class="p-3 border text-center">Acciones</th>
                 </tr>
             </thead>
@@ -28,6 +29,7 @@
                         <td class="p-3 border font-semibold"><%= e.apellidos %> <%= e.nombres %></td>
                         <td class="p-3 border text-center"><%= e.genero %></td>
                         <td class="p-3 border"><%= e.curso_nombre || 'Sin Asignar' %></td>
+                        <td class="p-3 border text-xs"><%= e.tutor_nombre || 'Sin Tutor' %></td>
                         <td class="p-3 border text-center space-x-2">
                             <button 
                                 type="button"
@@ -38,6 +40,11 @@
                                 data-apellidos="<%= e.apellidos %>"
                                 data-nombres="<%= e.nombres %>"
                                 data-genero="<%= e.genero %>"
+                                data-fecha="<%= e.fecha_nacimiento ? e.fecha_nacimiento.toISOString().split('T')[0] : '' %>"
+                                data-matricula="<%= e.matricula %>"
+                                data-tutor_nombre="<%= e.tutor_nombre %>"
+                                data-tutor_ci="<%= e.tutor_ci %>"
+                                data-tutor_telefono="<%= e.tutor_telefono %>"
                                 data-curso="<%= e.curso_id %>">
                                 <i class="fas fa-edit"></i> Editar
                             </button>
@@ -53,18 +60,22 @@
 </div>
 
 <!-- Modal Estudiante (Crear / Editar) -->
-<div id="modalEstudiante" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
-    <div class="bg-white p-6 rounded-lg w-full max-w-lg shadow-xl">
+<div id="modalEstudiante" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50 overflow-y-auto">
+    <div class="bg-white p-6 rounded-lg w-full max-w-2xl shadow-xl my-8">
         <h3 id="modalTitulo" class="text-xl font-bold mb-4">Registrar Estudiante</h3>
         <form id="formEstudiante" action="/estudiantes/nuevo" method="POST" class="space-y-3">
-            <div>
-                <label class="block text-xs font-bold">RUDE:</label>
-                <input type="text" id="inputRude" name="rude" class="w-full border p-2 rounded" required>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-xs font-bold">RUDE:</label>
+                    <input type="text" id="inputRude" name="rude" class="w-full border p-2 rounded" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold">CI:</label>
+                    <input type="text" id="inputCi" name="ci" class="w-full border p-2 rounded">
+                </div>
             </div>
-            <div>
-                <label class="block text-xs font-bold">CI:</label>
-                <input type="text" id="inputCi" name="ci" class="w-full border p-2 rounded">
-            </div>
+
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="block text-xs font-bold">Apellidos:</label>
@@ -75,7 +86,8 @@
                     <input type="text" id="inputNombres" name="nombres" class="w-full border p-2 rounded" required>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-2">
+
+            <div class="grid grid-cols-3 gap-2">
                 <div>
                     <label class="block text-xs font-bold">Género:</label>
                     <select id="selectGenero" name="genero" class="w-full border p-2 rounded">
@@ -84,15 +96,47 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold">Curso:</label>
-                    <select id="selectCurso" name="curso_id" class="w-full border p-2 rounded">
-                        <option value="">-- Asignar Curso --</option>
-                        <% cursos.forEach(c => { %>
-                            <option value="<%= c.id %>"><%= c.grado %> <%= c.paralelo %></option>
-                        <% }) %>
+                    <label class="block text-xs font-bold">Fecha de Nacimiento:</label>
+                    <input type="date" id="inputFecha" name="fecha_nacimiento" class="w-full border p-2 rounded">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold">Matrícula:</label>
+                    <select id="selectMatricula" name="matricula" class="w-full border p-2 rounded">
+                        <option value="EFECTIVO">EFECTIVO</option>
+                        <option value="NO EFECTIVO">NO EFECTIVO</option>
+                        <option value="RETIRO">RETIRO</option>
                     </select>
                 </div>
             </div>
+
+            <div>
+                <label class="block text-xs font-bold">Curso:</label>
+                <select id="selectCurso" name="curso_id" class="w-full border p-2 rounded">
+                    <option value="">-- Asignar Curso --</option>
+                    <% cursos.forEach(c => { %>
+                        <option value="<%= c.id %>"><%= c.grado %> <%= c.paralelo %></option>
+                    <% }) %>
+                </select>
+            </div>
+
+            <hr class="my-3">
+            <h4 class="text-sm font-bold text-gray-700">Información del Tutor / Apoderado</h4>
+
+            <div class="grid grid-cols-3 gap-2">
+                <div>
+                    <label class="block text-xs font-bold">Nombre Completo:</label>
+                    <input type="text" id="inputTutorNombre" name="tutor_nombre" class="w-full border p-2 rounded" placeholder="Nombre tutor">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold">CI Tutor:</label>
+                    <input type="text" id="inputTutorCi" name="tutor_ci" class="w-full border p-2 rounded" placeholder="CI tutor">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold">Teléfono / Celular:</label>
+                    <input type="text" id="inputTutorTelefono" name="tutor_telefono" class="w-full border p-2 rounded" placeholder="Teléfono">
+                </div>
+            </div>
+
             <div class="flex justify-end space-x-2 pt-4">
                 <button type="button" onclick="document.getElementById('modalEstudiante').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded">Cancelar</button>
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded font-bold">Guardar</button>
@@ -110,7 +154,12 @@ function abrirModalCrear() {
     document.getElementById('inputApellidos').value = '';
     document.getElementById('inputNombres').value = '';
     document.getElementById('selectGenero').value = 'M';
+    document.getElementById('inputFecha').value = '';
+    document.getElementById('selectMatricula').value = 'EFECTIVO';
     document.getElementById('selectCurso').value = '';
+    document.getElementById('inputTutorNombre').value = '';
+    document.getElementById('inputTutorCi').value = '';
+    document.getElementById('inputTutorTelefono').value = '';
     document.getElementById('modalEstudiante').classList.remove('hidden');
 }
 
@@ -124,7 +173,12 @@ document.addEventListener('click', function (e) {
         document.getElementById('inputApellidos').value = btn.dataset.apellidos || '';
         document.getElementById('inputNombres').value = btn.dataset.nombres || '';
         document.getElementById('selectGenero').value = btn.dataset.genero || 'M';
+        document.getElementById('inputFecha').value = btn.dataset.fecha || '';
+        document.getElementById('selectMatricula').value = btn.dataset.matricula || 'EFECTIVO';
         document.getElementById('selectCurso').value = btn.dataset.curso || '';
+        document.getElementById('inputTutorNombre').value = btn.dataset.tutor_nombre || '';
+        document.getElementById('inputTutorCi').value = btn.dataset.tutor_ci || '';
+        document.getElementById('inputTutorTelefono').value = btn.dataset.tutor_telefono || '';
         document.getElementById('modalEstudiante').classList.remove('hidden');
     }
 });
