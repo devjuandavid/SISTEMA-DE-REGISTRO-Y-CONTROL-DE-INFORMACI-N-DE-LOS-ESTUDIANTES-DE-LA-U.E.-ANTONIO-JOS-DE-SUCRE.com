@@ -16,7 +16,21 @@ const initDb = async () => {
                 password TEXT NOT NULL
             );
         `);
-        
+        <%- include('../partials/header') %>
+
+<!-- Tu contenido HTML del módulo -->
+
+<%- include('../partials/footer') %>
+        // Asegurar columnas en la tabla notas si ya existía la tabla previamente
+            await pool.query(`
+                ALTER TABLE notas ADD COLUMN IF NOT EXISTS trimestre INT DEFAULT 1;
+                ALTER TABLE notas ADD COLUMN IF NOT EXISTS ser NUMERIC(5,2) DEFAULT 0;
+                ALTER TABLE notas ADD COLUMN IF NOT EXISTS saber NUMERIC(5,2) DEFAULT 0;
+                ALTER TABLE notas ADD COLUMN IF NOT EXISTS hacer NUMERIC(5,2) DEFAULT 0;
+                ALTER TABLE notas ADD COLUMN IF NOT EXISTS autoevaluacion NUMERIC(5,2) DEFAULT 0;
+                ALTER TABLE notas ADD COLUMN IF NOT EXISTS nota_trimestral NUMERIC(5,2) DEFAULT 0;
+                ALTER TABLE notas ADD COLUMN IF NOT EXISTS cualitativo TEXT;
+            `);
         // AGREGAR COLUMNAS SI YA EXISTÍA LA TABLA VIEJA
         await pool.query(`
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nombre_completo VARCHAR(100) DEFAULT 'Usuario';

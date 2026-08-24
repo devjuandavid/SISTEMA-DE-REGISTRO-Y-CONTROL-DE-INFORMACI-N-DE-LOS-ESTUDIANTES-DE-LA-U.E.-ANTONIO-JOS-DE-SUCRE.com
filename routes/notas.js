@@ -6,7 +6,6 @@ router.get('/', async (req, res) => {
     try {
         const { curso_id, materia_id, trimestre = 1 } = req.query;
 
-        // Cargar listas para los selectores
         const cursos = await db.query('SELECT * FROM cursos ORDER BY grado, paralelo');
         const materias = await db.query('SELECT * FROM materias ORDER BY nombre');
 
@@ -34,12 +33,13 @@ router.get('/', async (req, res) => {
             estudiantes = result.rows;
         }
 
-        res.render('notas', {
+        // Si tu vista está en views/notas/index.ejs usas 'notas/index'
+        res.render('notas/index', {
             cursos: cursos.rows,
             materias: materias.rows,
             estudiantes,
-            curso_id,
-            materia_id,
+            curso_id: curso_id || '',
+            materia_id: materia_id || '',
             trimestre
         });
     } catch (err) {
