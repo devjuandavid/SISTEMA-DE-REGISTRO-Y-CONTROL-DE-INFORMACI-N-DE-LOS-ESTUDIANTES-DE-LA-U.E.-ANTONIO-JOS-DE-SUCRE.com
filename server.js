@@ -38,7 +38,8 @@ app.use('/notas', require('./routes/notas'));
 app.use('/reportes', require('./routes/reportes'));
 
 // Redirección inicial al Login
-app.get('/', (req, res) => res.redirect('login'));
+// Redirección inicial al Login (Línea 41)
+app.get('/', (req, res) => res.redirect('/auth/login'));
 
 // Puerto y Arranque
 const PORT = process.env.PORT || 10000;
