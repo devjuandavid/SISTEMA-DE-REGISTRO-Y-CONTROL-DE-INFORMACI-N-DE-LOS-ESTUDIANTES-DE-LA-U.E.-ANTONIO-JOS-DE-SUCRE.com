@@ -77,7 +77,7 @@ const inicializarBaseDeDatos = async () => {
             );
         `);
 
-        // 6. Centralizador de Notas (Saber, Hacer, Ser, Decidir, Autoevaluación)
+        // 6. Centralizador de Notas
         await pool.query(`
             CREATE TABLE IF NOT EXISTS notas (
                 id SERIAL PRIMARY KEY,
@@ -94,16 +94,26 @@ const inicializarBaseDeDatos = async () => {
             );
         `);
 
-        // 7. Modificaciones preventivas (por si las tablas ya existían)
+        // 7. Modificaciones preventivas (Corrige esquemas viejos en PostgreSQL)
         await pool.query(`
             ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_nombre VARCHAR(150);
             ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_ci VARCHAR(20);
             ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_telefono VARCHAR(20);
+            
+            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nombre VARCHAR(100);
+            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email VARCHAR(100);
+            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS password VARCHAR(255);
+            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS rol VARCHAR(20) DEFAULT 'PROFESOR';
         `);
 
-        // Asegurar que la columna 'nombre' exista si la tabla se creó previamente
+        // Asegurar restricción UNIQUE en email
         await pool.query(`
-            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nombre VARCHAR(100);
+            DO $$ 
+            BEGIN 
+                IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'usuarios_email_key') THEN
+                    ALTER TABLE usuarios ADD CONSTRAINT usuarios_email_key UNIQUE (email);
+                END IF;
+            END $$;
         `);
 
         // Admin por defecto
