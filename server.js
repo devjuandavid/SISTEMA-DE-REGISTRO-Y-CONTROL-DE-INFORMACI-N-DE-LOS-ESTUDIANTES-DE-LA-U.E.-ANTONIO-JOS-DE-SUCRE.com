@@ -22,7 +22,16 @@ app.use((req, res, next) => {
     next();
 });
 
-// Rutas
+// Redirección de la Ruta Raíz Principal
+app.get('/', (req, res) => {
+    if (req.session && req.session.user) {
+        res.redirect('/dashboard');
+    } else {
+        res.redirect('/login');
+    }
+});
+
+// Rutas de los módulos
 app.use('/', require('./routes/auth'));
 app.use('/dashboard', require('./routes/dashboard'));
 app.use('/estudiantes', require('./routes/estudiantes'));
