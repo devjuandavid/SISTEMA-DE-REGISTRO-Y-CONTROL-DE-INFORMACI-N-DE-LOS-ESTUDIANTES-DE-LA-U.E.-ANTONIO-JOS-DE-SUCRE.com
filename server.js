@@ -1,53 +1,46 @@
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
-const cursosRouter = require('./routes/cursos');
-const materiasRouter = require('./routes/materias');
-const usuariosRouter = require('./routes/usuarios');
 
-app.use('/cursos', cursosRouter);
-app.use('/materias', materiasRouter);
-app.use('/usuarios', usuariosRouter);
-require('dotenv').config();
-
+// 1. Inicializar Express primero
 const app = express();
 
-// Middlewares para procesar datos
+// 2. Middlewares de datos y estáticos
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuración de Vistas EJS
+// 3. Configuración de Vistas EJS
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Configuración de Sesiones
+// 4. Configuración de Sesiones
 app.use(session({
     secret: 'secret_key_sucre_2026',
     resave: false,
     saveUninitialized: false
 }));
 
-// Pasar el usuario en sesión a todas las vistas automáticamente
+// 5. Pasar el usuario en sesión a las vistas
 app.use((req, res, next) => {
     res.locals.usuario = req.session.usuario || null;
     next();
 });
-app.use(express.urlencoded({ extended: true }));
-// Importar y Registrar Rutas
+
+// 6. Registrar Rutas del Sistema
 app.use('/auth', require('./routes/auth'));
 app.use('/estudiantes', require('./routes/estudiantes'));
 app.use('/cursos', require('./routes/cursos'));
 app.use('/materias', require('./routes/materias'));
-app.use('/profesores', require('./routes/profesores'));
+app.use('/usuarios', require('./routes/usuarios'));
 app.use('/asistencia', require('./routes/asistencia'));
 app.use('/notas', require('./routes/notas'));
 app.use('/reportes', require('./routes/reportes'));
 
-// Redirección inicial al Login
-// Redirección inicial al Login (Línea 41)
+// 7. Redirección inicial al Login
 app.get('/', (req, res) => res.redirect('/auth/login'));
 
-// Puerto y Arranque
+// 8. Puerto y Arranque
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Servidor ejecutándose en el puerto ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Servidor ejecutándose en el puerto ${PORT}`));
