@@ -2,13 +2,12 @@
 
 <div class="bg-white p-6 rounded-lg shadow-md mb-6">
     <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-user-graduate text-blue-600 mr-2"></i> Gestión de Estudiantes (RUDE)</h2>
-        <button onclick="document.getElementById('modalNuevo').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+        <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-user-graduate text-blue-600 mr-2"></i> Gestión de Estudiantes</h2>
+        <button onclick="abrirModalCrear()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
             <i class="fas fa-user-plus mr-2"></i> Nuevo Estudiante
         </button>
     </div>
 
-    <!-- Tabla -->
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse border border-gray-200">
             <thead>
@@ -16,7 +15,7 @@
                     <th class="p-3 border">RUDE</th>
                     <th class="p-3 border">CI</th>
                     <th class="p-3 border">Apellidos y Nombres</th>
-                    <th class="p-3 border text-center">GÉNERO</th>
+                    <th class="p-3 border text-center">Género</th>
                     <th class="p-3 border">Curso</th>
                     <th class="p-3 border text-center">Acciones</th>
                 </tr>
@@ -30,7 +29,19 @@
                         <td class="p-3 border text-center"><%= e.genero %></td>
                         <td class="p-3 border"><%= e.curso_nombre || 'Sin Asignar' %></td>
                         <td class="p-3 border text-center space-x-2">
-                            <a href="/estudiantes/eliminar/<%= e.id %>" onclick="return confirm('¿Seguro de eliminar este estudiante?')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs">
+                            <button 
+                                type="button"
+                                class="btn-editar bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs font-bold"
+                                data-id="<%= e.id %>"
+                                data-rude="<%= e.rude %>"
+                                data-ci="<%= e.ci %>"
+                                data-apellidos="<%= e.apellidos %>"
+                                data-nombres="<%= e.nombres %>"
+                                data-genero="<%= e.genero %>"
+                                data-curso="<%= e.curso_id %>">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <a href="/estudiantes/eliminar/<%= e.id %>" onclick="return confirm('¿Seguro de eliminar este estudiante?')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-bold">
                                 <i class="fas fa-trash"></i> Eliminar
                             </a>
                         </td>
@@ -41,40 +52,40 @@
     </div>
 </div>
 
-<!-- Modal Registrar Estudiante -->
-<div id="modalNuevo" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
+<!-- Modal Estudiante (Crear / Editar) -->
+<div id="modalEstudiante" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
     <div class="bg-white p-6 rounded-lg w-full max-w-lg shadow-xl">
-        <h3 class="text-xl font-bold mb-4">Registrar Nuevo Estudiante</h3>
-        <form action="/estudiantes/nuevo" method="POST" class="space-y-3">
+        <h3 id="modalTitulo" class="text-xl font-bold mb-4">Registrar Estudiante</h3>
+        <form id="formEstudiante" action="/estudiantes/nuevo" method="POST" class="space-y-3">
             <div>
                 <label class="block text-xs font-bold">RUDE:</label>
-                <input type="text" name="rude" class="w-full border p-2 rounded" required>
+                <input type="text" id="inputRude" name="rude" class="w-full border p-2 rounded" required>
             </div>
             <div>
                 <label class="block text-xs font-bold">CI:</label>
-                <input type="text" name="ci" class="w-full border p-2 rounded">
+                <input type="text" id="inputCi" name="ci" class="w-full border p-2 rounded">
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="block text-xs font-bold">Apellidos:</label>
-                    <input type="text" name="apellidos" class="w-full border p-2 rounded" required>
+                    <input type="text" id="inputApellidos" name="apellidos" class="w-full border p-2 rounded" required>
                 </div>
                 <div>
                     <label class="block text-xs font-bold">Nombres:</label>
-                    <input type="text" name="nombres" class="w-full border p-2 rounded" required>
+                    <input type="text" id="inputNombres" name="nombres" class="w-full border p-2 rounded" required>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="block text-xs font-bold">Género:</label>
-                    <select name="genero" class="w-full border p-2 rounded">
+                    <select id="selectGenero" name="genero" class="w-full border p-2 rounded">
                         <option value="M">Masculino (M)</option>
                         <option value="F">Femenino (F)</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-xs font-bold">Curso:</label>
-                    <select name="curso_id" class="w-full border p-2 rounded">
+                    <select id="selectCurso" name="curso_id" class="w-full border p-2 rounded">
                         <option value="">-- Asignar Curso --</option>
                         <% cursos.forEach(c => { %>
                             <option value="<%= c.id %>"><%= c.grado %> <%= c.paralelo %></option>
@@ -83,11 +94,40 @@
                 </div>
             </div>
             <div class="flex justify-end space-x-2 pt-4">
-                <button type="button" onclick="document.getElementById('modalNuevo').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded">Cancelar</button>
+                <button type="button" onclick="document.getElementById('modalEstudiante').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded">Cancelar</button>
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded font-bold">Guardar</button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+function abrirModalCrear() {
+    document.getElementById('modalTitulo').innerText = 'Registrar Nuevo Estudiante';
+    document.getElementById('formEstudiante').action = '/estudiantes/nuevo';
+    document.getElementById('inputRude').value = '';
+    document.getElementById('inputCi').value = '';
+    document.getElementById('inputApellidos').value = '';
+    document.getElementById('inputNombres').value = '';
+    document.getElementById('selectGenero').value = 'M';
+    document.getElementById('selectCurso').value = '';
+    document.getElementById('modalEstudiante').classList.remove('hidden');
+}
+
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.btn-editar');
+    if (btn) {
+        document.getElementById('modalTitulo').innerText = 'Editar Estudiante';
+        document.getElementById('formEstudiante').action = '/estudiantes/editar/' + btn.dataset.id;
+        document.getElementById('inputRude').value = btn.dataset.rude || '';
+        document.getElementById('inputCi').value = btn.dataset.ci || '';
+        document.getElementById('inputApellidos').value = btn.dataset.apellidos || '';
+        document.getElementById('inputNombres').value = btn.dataset.nombres || '';
+        document.getElementById('selectGenero').value = btn.dataset.genero || 'M';
+        document.getElementById('selectCurso').value = btn.dataset.curso || '';
+        document.getElementById('modalEstudiante').classList.remove('hidden');
+    }
+});
+</script>
 
 <%- include('../partials/footer') %>

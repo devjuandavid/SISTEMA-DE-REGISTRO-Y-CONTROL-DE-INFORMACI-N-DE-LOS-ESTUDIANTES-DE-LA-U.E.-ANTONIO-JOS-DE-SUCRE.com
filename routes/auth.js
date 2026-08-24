@@ -1,46 +1,30 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
 const db = require('../database/db');
 
-// Vista de Login
 router.get('/login', (req, res) => {
-    res.render('login', { error: null });
+    res.render('auth/login', { error: null });
 });
 
-// Procesar Login
 router.post('/login', async (req, res) => {
-    const { usuario, password } = req.body;
     try {
-        const result = await db.query('SELECT * FROM usuarios WHERE usuario = $1', [usuario]);
-        if (result.rows.length === 0) {
-            return res.render('login', { error: 'Usuario no encontrado' });
+        const { email, password } = req.body;
+        const result = await db.query('SELECT * FROM usuarios WHERE email = $1 AND password = $2', [email, password]);
+        
+        if (result.rows.length > 0) {
+            req.session.usuario = result.rows[0];
+            return res.redirect('/estudiantes');
         }
-
-        const user = result.rows[0];
-        const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) {
-            return res.render('login', { error: 'Contraseña incorrecta' });
-        }
-
-        req.session.user = {
-            id: user.id,
-            usuario: user.usuario,
-            nombre_completo: user.nombre_completo,
-            rol: user.rol
-        };
-
-        res.redirect('/dashboard');
+        res.render('auth/login', { error: 'Credenciales incorrectas' });
     } catch (err) {
-        console.error('Error en Login:', err);
-        res.render('login', { error: 'Error interno en el servidor' });
+        console.error(err);
+        res.status(500).send('Error en inicio de sesión');
     }
 });
 
-// Cerrar Sesión
 router.get('/logout', (req, res) => {
     req.session.destroy(() => {
-        res.redirect('/login');
+        res.redirect('/auth/login');
     });
 });
 

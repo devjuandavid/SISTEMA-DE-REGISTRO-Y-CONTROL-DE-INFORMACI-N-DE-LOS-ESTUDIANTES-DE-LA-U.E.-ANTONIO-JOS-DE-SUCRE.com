@@ -1,64 +1,71 @@
 <%- include('../partials/header') %>
-<h1 class="text-3xl font-bold mb-6 text-gray-800">Control de Asistencia</h1>
 
-<form method="GET" action="/asistencia" class="bg-white p-4 rounded shadow mb-6 flex gap-4">
-    <div>
-        <label class="block font-medium mb-1">Curso</label>
-        <select name="curso_id" class="border rounded px-3 py-2" required>
-            <option value="">Seleccionar Curso</option>
-            <% cursos.forEach(c => { %>
-                <option value="<%= c.id %>" <%= curso_id == c.id ? 'selected' : '' %>><%= c.grado %> "<%= c.paralelo %>"</option>
-            <% }) %>
-        </select>
-    </div>
-    <div>
-        <label class="block font-medium mb-1">Fecha</label>
-        <input type="date" name="fecha" value="<%= fecha %>" class="border rounded px-3 py-2" required>
-    </div>
-    <div class="flex items-end">
-        <button type="submit" class="bg-blue-900 text-white px-4 py-2 rounded font-semibold hover:bg-blue-800">Cargar Lista</button>
-    </div>
-</form>
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4"><i class="fas fa-calendar-check text-blue-600 mr-2"></i> Control Diario de Asistencia</h2>
 
-<% if (estudiantes.length > 0) { %>
-<div class="grid grid-cols-3 gap-4 mb-6">
-    <div class="bg-green-100 p-4 rounded text-center border border-green-300">
-        <span class="block text-2xl font-bold text-green-800"><%= resumen.presentes %></span>
-        <span class="text-sm text-green-700">Presentes</span>
-    </div>
-    <div class="bg-red-100 p-4 rounded text-center border border-red-300">
-        <span class="block text-2xl font-bold text-red-800"><%= resumen.faltas %></span>
-        <span class="text-sm text-red-700">Faltas</span>
-    </div>
-    <div class="bg-yellow-100 p-4 rounded text-center border border-yellow-300">
-        <span class="block text-2xl font-bold text-yellow-800"><%= resumen.atrasos %></span>
-        <span class="text-sm text-yellow-700">Atrasos</span>
-    </div>
+    <form method="GET" action="/asistencia" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded border mb-6">
+        <div>
+            <label class="block text-xs font-bold mb-1">Curso:</label>
+            <select name="curso_id" onchange="this.form.submit()" class="w-full border p-2 rounded text-xs" required>
+                <option value="">-- Seleccionar --</option>
+                <% cursos.forEach(c => { %>
+                    <option value="<%= c.id %>" <%= curso_id == c.id ? 'selected' : '' %>><%= c.grado %> <%= c.paralelo %></option>
+                <% }) %>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-bold mb-1">Materia:</label>
+            <select name="materia_id" class="w-full border p-2 rounded text-xs" required>
+                <option value="">-- Seleccionar --</option>
+                <% materias.forEach(m => { %>
+                    <option value="<%= m.id %>" <%= materia_id == m.id ? 'selected' : '' %>><%= m.nombre %></option>
+                <% }) %>
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-bold mb-1">Fecha:</label>
+            <input type="date" name="fecha" value="<%= fecha || '' %>" class="w-full border p-2 rounded text-xs" required>
+        </div>
+        <div class="flex items-end">
+            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-xs">Cargar Lista</button>
+        </div>
+    </form>
+
+    <% if (estudiantes.length > 0) { %>
+        <form action="/asistencia/guardar" method="POST">
+            <input type="hidden" name="curso_id" value="<%= curso_id %>">
+            <input type="hidden" name="materia_id" value="<%= materia_id %>">
+            <input type="hidden" name="fecha" value="<%= fecha %>">
+
+            <table class="w-full text-left border-collapse border border-gray-200 text-xs">
+                <thead>
+                    <tr class="bg-gray-800 text-white uppercase">
+                        <th class="p-3 border">Estudiante</th>
+                        <th class="p-3 border text-center">Estado de Asistencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% estudiantes.forEach(e => { %>
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-3 border font-bold"><%= e.apellidos %> <%= e.nombres %></td>
+                            <td class="p-3 border text-center">
+                                <select name="asistencia[<%= e.id %>]" class="border p-1 rounded font-bold text-xs">
+                                    <option value="PRESENTE" <%= e.estado === 'PRESENTE' ? 'selected' : '' %>>PRESENTE</option>
+                                    <option value="FALTA" <%= e.estado === 'FALTA' ? 'selected' : '' %>>FALTA</option>
+                                    <option value="LICENCIA" <%= e.estado === 'LICENCIA' ? 'selected' : '' %>>LICENCIA</option>
+                                    <option value="ATRASO" <%= e.estado === 'ATRASO' ? 'selected' : '' %>>ATRASO</option>
+                                </select>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+
+            <div class="mt-4 flex justify-end">
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded">Guardar Asistencia</button>
+            </div>
+        </form>
+    <% } %>
 </div>
 
-<form action="/asistencia/guardar" method="POST" class="bg-white p-6 rounded shadow">
-    <input type="hidden" name="fecha" value="<%= fecha %>">
-    <table class="w-full text-left border-collapse mb-4">
-        <thead>
-            <tr class="bg-gray-100 border-b">
-                <th class="p-3">Estudiante</th>
-                <th class="p-3 text-center">Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% estudiantes.forEach(est => { %>
-                <tr class="border-b">
-                    <td class="p-3 font-medium"><%= est.apellidos %> <%= est.nombres %></td>
-                    <td class="p-3 text-center space-x-4">
-                        <label><input type="radio" name="asistencia[<%= est.id %>]" value="Presente" <%= est.estado_asistencia === 'Presente' ? 'checked' : '' %>> Presente</label>
-                        <label><input type="radio" name="asistencia[<%= est.id %>]" value="Falta" <%= est.estado_asistencia === 'Falta' ? 'checked' : '' %>> Falta</label>
-                        <label><input type="radio" name="asistencia[<%= est.id %>]" value="Atraso" <%= est.estado_asistencia === 'Atraso' ? 'checked' : '' %>> Atraso</label>
-                    </td>
-                </tr>
-            <% }) %>
-        </tbody>
-    </table>
-    <button type="submit" class="bg-green-700 text-white px-6 py-2 rounded font-semibold hover:bg-green-800">Guardar Asistencia</button>
-</form>
-<% } %>
 <%- include('../partials/footer') %>

@@ -1,35 +1,78 @@
 <%- include('../partials/header') %>
-<div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold text-gray-800">Reporte General de Estudiantes</h1>
-    <button onclick="window.print()" class="bg-purple-700 text-white px-4 py-2 rounded font-semibold hover:bg-purple-800">Imprimir / Guardar en PDF</button>
+
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 print:hidden">
+        <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-file-alt text-blue-600 mr-2"></i> Reporte General de Estudiantes</h2>
+        
+        <% if (curso_id) { %>
+            <a href="/reportes/pdf?curso_id=<%= curso_id %>" class="bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 px-4 rounded transition">
+                <i class="fas fa-file-pdf mr-2"></i> Imprimir / Guardar en PDF
+            </a>
+        <% } %>
+    </div>
+
+    <!-- Filtro de Selección de Curso -->
+    <form method="GET" action="/reportes" class="bg-gray-50 p-4 rounded border mb-6 print:hidden">
+        <label class="block text-xs font-bold mb-2">Seleccione un Curso para Generar la Nómina:</label>
+        <div class="flex gap-4">
+            <select name="curso_id" onchange="this.form.submit()" class="w-full border p-2 rounded text-xs" required>
+                <option value="">-- Seleccionar Curso --</option>
+                <% cursos.forEach(c => { %>
+                    <option value="<%= c.id %>" <%= curso_id == c.id ? 'selected' : '' %>>
+                        <%= c.grado %> <%= c.paralelo %> - <%= c.nivel %>
+                    </option>
+                <% }) %>
+            </select>
+        </div>
+    </form>
+
+    <!-- Planilla Oficial Formato SIE -->
+    <div class="border p-8 rounded bg-white shadow-inner">
+        <div class="text-center mb-6">
+            <h1 class="text-xl font-bold text-blue-900 uppercase">UNIDAD EDUCATIVA ANTONIO JOSÉ DE SUCRE</h1>
+            <p class="text-sm font-medium text-gray-600">Nómina General de Inscritos - Gestión 2026</p>
+            <% if (cursoSeleccionado) { %>
+                <p class="text-xs font-bold text-gray-800 mt-1">
+                    Curso: <%= cursoSeleccionado.grado %> "<%= cursoSeleccionado.paralelo %>" | Nivel: <%= cursoSeleccionado.nivel %>
+                </p>
+            <% } %>
+        </div>
+
+        <table class="w-full text-left border-collapse border border-gray-300 text-xs">
+            <thead>
+                <tr class="bg-gray-100 uppercase text-gray-700">
+                    <th class="p-2 border text-center w-12">Nº</th>
+                    <th class="p-2 border">RUDE</th>
+                    <th class="p-2 border">CI</th>
+                    <th class="p-2 border">Nombre Completo</th>
+                    <th class="p-2 border text-center">Curso</th>
+                    <th class="p-2 border text-center">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (estudiantes.length === 0) { %>
+                    <tr>
+                        <td colspan="6" class="p-4 text-center text-gray-500 italic">No hay estudiantes registrados o seleccione un curso.</td>
+                    </tr>
+                <% } else { %>
+                    <% estudiantes.forEach((e, index) => { %>
+                        <tr class="border-b">
+                            <td class="p-2 border text-center font-bold"><%= index + 1 %></td>
+                            <td class="p-2 border font-mono"><%= e.rude %></td>
+                            <td class="p-2 border"><%= e.ci || 'S/N' %></td>
+                            <td class="p-2 border font-semibold"><%= e.apellidos %> <%= e.nombres %></td>
+                            <td class="p-2 border text-center"><%= e.grado %> "<%= e.paralelo %>"</td>
+                            <td class="p-2 border text-center font-bold text-green-700"><%= e.matricula %></td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+
+        <div class="mt-8 text-center text-xs text-gray-500 border-t pt-4">
+            U.E. Antonio José de Sucre - El Alto, Bolivia
+        </div>
+    </div>
 </div>
 
-<div class="bg-white p-6 rounded-lg shadow">
-    <h2 class="text-xl font-bold text-center text-blue-900 mb-4">UNIDAD EDUCATIVA ANTONIO JOSÉ DE SUCRE</h2>
-    <p class="text-center text-gray-600 mb-6">Nómina General de Inscritos - Gestión 2026</p>
-    <table class="w-full text-left border-collapse border">
-        <thead>
-            <tr class="bg-gray-100 border-b">
-                <th class="p-2 border">Nº</th>
-                <th class="p-2 border">RUDE</th>
-                <th class="p-2 border">CI</th>
-                <th class="p-2 border">Nombre Completo</th>
-                <th class="p-2 border">Curso</th>
-                <th class="p-2 border">Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% estudiantes.forEach((est, index) => { %>
-                <tr class="border-b">
-                    <td class="p-2 border"><%= index + 1 %></td>
-                    <td class="p-2 border font-mono text-sm"><%= est.rude %></td>
-                    <td class="p-2 border"><%= est.ci %></td>
-                    <td class="p-2 border"><%= est.apellidos %> <%= est.nombres %></td>
-                    <td class="p-2 border"><%= est.grado %> "<%= est.paralelo %>" (<%= est.turno %>)</td>
-                    <td class="p-2 border"><%= est.estado %></td>
-                </tr>
-            <% }) %>
-        </tbody>
-    </table>
-</div>
 <%- include('../partials/footer') %>

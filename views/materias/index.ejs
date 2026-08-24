@@ -1,0 +1,68 @@
+<%- include('../partials/header') %>
+
+<div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-book text-blue-600 mr-2"></i> Asignación de Materias y Docentes</h2>
+        <% if (usuario && usuario.rol === 'ADMIN') { %>
+            <button onclick="document.getElementById('modalMateria').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-xs">
+                <i class="fas fa-plus mr-2"></i> Nueva Materia
+            </button>
+        <% } %>
+    </div>
+
+    <table class="w-full text-left border-collapse border border-gray-200 text-xs">
+        <thead>
+            <tr class="bg-gray-800 text-white uppercase">
+                <th class="p-3 border">Nombre Materia</th>
+                <th class="p-3 border">Curso / Nivel</th>
+                <th class="p-3 border">Profesor Asignado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% materias.forEach(m => { %>
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-3 border font-bold text-blue-900"><%= m.nombre %></td>
+                    <td class="p-3 border"><%= m.grado ? m.grado + ' ' + m.paralelo + ' (' + m.nivel + ')' : 'Sin Curso' %></td>
+                    <td class="p-3 border font-semibold"><%= m.profesor_nombre || 'Sin Profesor Asignado' %></td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Registrar Materia -->
+<div id="modalMateria" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
+    <div class="bg-white p-6 rounded-lg w-full max-w-md shadow-xl">
+        <h3 class="text-lg font-bold mb-4 border-b pb-2">Asignar Materia a Curso</h3>
+        <form action="/materias/nuevo" method="POST" class="space-y-4 text-xs">
+            <div>
+                <label class="block font-bold">Nombre de la Materia:</label>
+                <input type="text" name="nombre" placeholder="Ej: Matemática, Lenguaje" required class="w-full border p-2 rounded">
+            </div>
+            <div>
+                <label class="block font-bold">Curso:</label>
+                <select name="curso_id" class="w-full border p-2 rounded" required>
+                    <option value="">-- Seleccionar Curso --</option>
+                    <% cursos.forEach(c => { %>
+                        <option value="<%= c.id %>"><%= c.grado %> "<%= c.paralelo %>" - <%= c.nivel %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <div>
+                <label class="block font-bold">Profesor Encargado:</label>
+                <select name="profesor_id" class="w-full border p-2 rounded">
+                    <option value="">-- Seleccionar Profesor --</option>
+                    <% profesores.forEach(p => { %>
+                        <option value="<%= p.id %>"><%= p.nombre %> (<%= p.email %>)</option>
+                    <% }) %>
+                </select>
+            </div>
+            <div class="flex justify-end gap-2 pt-4 border-t">
+                <button type="button" onclick="document.getElementById('modalMateria').classList.add('hidden')" class="bg-gray-500 text-white px-4 py-2 rounded">Cancelar</button>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded font-bold">Guardar Materia</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

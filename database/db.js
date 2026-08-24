@@ -1,27 +1,24 @@
 const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/escuela',
+    connectionString: process.env.DATABASE_URL,
     ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
-const initDb = async () => {
+const inicializarBaseDeDatos = async () => {
     try {
+        console.log('🔄 Sincronizando BD con RUDE, Notas y Asistencias...');
+
         // 1. Usuarios
         await pool.query(`
             CREATE TABLE IF NOT EXISTS usuarios (
                 id SERIAL PRIMARY KEY,
-                usuario VARCHAR(50) UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                nombre_completo VARCHAR(100) DEFAULT 'Usuario',
-                rol VARCHAR(20) DEFAULT 'profesor'
+                nombre VARCHAR(100) NOT NULL,
+                email VARCHAR(100) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                rol VARCHAR(20) DEFAULT 'PROFESOR',
+                creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
-        `);
-
-        await pool.query(`
-            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nombre_completo VARCHAR(100) DEFAULT 'Usuario';
-            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS rol VARCHAR(20) DEFAULT 'profesor';
         `);
 
         // 2. Cursos
@@ -31,7 +28,8 @@ const initDb = async () => {
                 nivel VARCHAR(100) NOT NULL,
                 grado VARCHAR(50) NOT NULL,
                 paralelo VARCHAR(10) NOT NULL,
-                turno VARCHAR(20) DEFAULT 'MAÑANA'
+                turno VARCHAR(20) DEFAULT 'MAÑANA',
+                sie VARCHAR(20) DEFAULT '70620085'
             );
         `);
 
@@ -40,108 +38,83 @@ const initDb = async () => {
             CREATE TABLE IF NOT EXISTS materias (
                 id SERIAL PRIMARY KEY,
                 nombre VARCHAR(100) NOT NULL,
-                area VARCHAR(100)
+                curso_id INT REFERENCES cursos(id) ON DELETE CASCADE,
+                profesor_id INT REFERENCES usuarios(id) ON DELETE SET NULL
             );
         `);
 
-        // 4. Asignación de Materias
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS profesor_materia (
-                id SERIAL PRIMARY KEY,
-                profesor_id INT REFERENCES usuarios(id) ON DELETE CASCADE,
-                materia_id INT REFERENCES materias(id) ON DELETE CASCADE,
-                curso_id INT REFERENCES cursos(id) ON DELETE CASCADE
-            );
-        `);
-
-        // 5. Estudiantes
+        // 4. Estudiantes (RUDE Completo)
         await pool.query(`
             CREATE TABLE IF NOT EXISTS estudiantes (
                 id SERIAL PRIMARY KEY,
-                rude VARCHAR(30) UNIQUE,
+                rude VARCHAR(30) UNIQUE NOT NULL,
                 ci VARCHAR(20),
                 apellidos VARCHAR(100) NOT NULL,
                 nombres VARCHAR(100) NOT NULL,
-                genero CHAR(1),
+                genero CHAR(1) CHECK (genero IN ('M', 'F')),
                 fecha_nacimiento DATE,
                 pais VARCHAR(50) DEFAULT 'BOLIVIA',
-                departamento VARCHAR(50),
-                provincia VARCHAR(50),
-                localidad VARCHAR(50),
-                matricula VARCHAR(50) DEFAULT 'EFECTIVO',
+                departamento VARCHAR(50) DEFAULT 'La Paz',
+                provincia VARCHAR(50) DEFAULT 'MURILLO',
+                localidad VARCHAR(100) DEFAULT 'EL ALTO',
+                matricula VARCHAR(30) DEFAULT 'EFECTIVO',
+                tutor_nombre VARCHAR(150),
+                tutor_ci VARCHAR(20),
+                tutor_telefono VARCHAR(20),
                 curso_id INT REFERENCES cursos(id) ON DELETE SET NULL
             );
         `);
 
-        // 6. Asistencia
+        // 5. Asistencias
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS asistencia (
+            CREATE TABLE IF NOT EXISTS asistencias (
                 id SERIAL PRIMARY KEY,
                 estudiante_id INT REFERENCES estudiantes(id) ON DELETE CASCADE,
                 materia_id INT REFERENCES materias(id) ON DELETE CASCADE,
                 fecha DATE NOT NULL,
-                estado CHAR(1)
+                estado VARCHAR(20) CHECK (estado IN ('PRESENTE', 'FALTA', 'LICENCIA', 'ATRASO')),
+                UNIQUE(estudiante_id, materia_id, fecha)
             );
         `);
 
-        // 7. Notas
+        // 6. Centralizador de Notas (Saber, Hacer, Ser, Decidir, Autoevaluación)
         await pool.query(`
             CREATE TABLE IF NOT EXISTS notas (
                 id SERIAL PRIMARY KEY,
                 estudiante_id INT REFERENCES estudiantes(id) ON DELETE CASCADE,
                 materia_id INT REFERENCES materias(id) ON DELETE CASCADE,
-                trimestre INT DEFAULT 1,
-                ser NUMERIC(5,2) DEFAULT 0,
-                saber NUMERIC(5,2) DEFAULT 0,
-                hacer NUMERIC(5,2) DEFAULT 0,
-                autoevaluacion NUMERIC(5,2) DEFAULT 0,
-                nota_trimestral NUMERIC(5,2) DEFAULT 0,
-                cualitativo TEXT
+                trimestre INT CHECK (trimestre IN (1, 2, 3)),
+                saber DECIMAL(5,2) DEFAULT 0,
+                hacer DECIMAL(5,2) DEFAULT 0,
+                ser DECIMAL(5,2) DEFAULT 0,
+                decidir DECIMAL(5,2) DEFAULT 0,
+                autoevaluacion DECIMAL(5,2) DEFAULT 0,
+                nota_final DECIMAL(5,2) DEFAULT 0,
+                UNIQUE(estudiante_id, materia_id, trimestre)
             );
         `);
 
+        // 7. Modificaciones preventivas (por si las tablas ya existían)
         await pool.query(`
-            ALTER TABLE notas ADD COLUMN IF NOT EXISTS trimestre INT DEFAULT 1;
-            ALTER TABLE notas ADD COLUMN IF NOT EXISTS ser NUMERIC(5,2) DEFAULT 0;
-            ALTER TABLE notas ADD COLUMN IF NOT EXISTS saber NUMERIC(5,2) DEFAULT 0;
-            ALTER TABLE notas ADD COLUMN IF NOT EXISTS hacer NUMERIC(5,2) DEFAULT 0;
-            ALTER TABLE notas ADD COLUMN IF NOT EXISTS autoevaluacion NUMERIC(5,2) DEFAULT 0;
-            ALTER TABLE notas ADD COLUMN IF NOT EXISTS nota_trimestral NUMERIC(5,2) DEFAULT 0;
-            ALTER TABLE notas ADD COLUMN IF NOT EXISTS cualitativo TEXT;
+            ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_nombre VARCHAR(150);
+            ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_ci VARCHAR(20);
+            ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_telefono VARCHAR(20);
         `);
+
+        // Admin por defecto
         await pool.query(`
-            DO $$ 
-            BEGIN 
-                IF NOT EXISTS (
-                    SELECT 1 FROM pg_constraint WHERE conname = 'unique_nota_estudiante'
-                ) THEN 
-                    ALTER TABLE notas ADD CONSTRAINT unique_nota_estudiante UNIQUE (estudiante_id, materia_id, trimestre);
-                END IF;
-            END $$;
+            INSERT INTO usuarios (nombre, email, password, rol) 
+            VALUES ('Administrador', 'admin@sucre.edu.bo', 'admin123', 'ADMIN')
+            ON CONFLICT (email) DO NOTHING;
         `);
-        // Usuarios iniciales
-        const passAdmin = bcrypt.hashSync('admin123', 10);
-        await pool.query(`
-            INSERT INTO usuarios (usuario, password, nombre_completo, rol) 
-            VALUES ('admin', $1, 'Director General', 'director') 
-            ON CONFLICT (usuario) DO NOTHING;
-        `, [passAdmin]);
 
-        const passProfe = bcrypt.hashSync('profe123', 10);
-        await pool.query(`
-            INSERT INTO usuarios (usuario, password, nombre_completo, rol) 
-            VALUES ('profe_eugenia', $1, 'Eugenia Virginia Cadena Lima', 'profesor') 
-            ON CONFLICT (usuario) DO NOTHING;
-        `, [passProfe]);
-
-        console.log('Base de datos inicializada correctamente.');
-
+        console.log('✅ Base de datos 100% sincronizada.');
     } catch (err) {
-        console.error('Error al inicializar las tablas:', err);
+        console.error('❌ Error al sincronizar BD:', err);
     }
 };
 
-initDb();
+inicializarBaseDeDatos();
 
 module.exports = {
     query: (text, params) => pool.query(text, params)

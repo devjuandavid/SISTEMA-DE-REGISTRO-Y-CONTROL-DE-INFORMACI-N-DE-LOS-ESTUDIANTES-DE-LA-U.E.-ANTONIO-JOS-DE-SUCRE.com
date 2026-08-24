@@ -1,67 +1,55 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
+const { verificarAuth } = require('../middleware/auth');
 
-const auth = (req, res, next) => {
-    if (!req.session.user) return res.redirect('/login');
-    next();
-};
-
-router.get('/', auth, async (req, res) => {
-    const { curso_id, fecha } = req.query;
+router.get('/', verificarAuth, async (req, res) => {
     try {
-        const cursos = await db.query('SELECT * FROM cursos');
+        const { curso_id, materia_id, fecha } = req.query;
+        const cursos = await db.query('SELECT * FROM cursos ORDER BY grado, paralelo');
+        let materias = [];
         let estudiantes = [];
-        let resumen = { presentes: 0, faltas: 0, atrasos: 0 };
 
-        if (curso_id && fecha) {
-            const resEst = await db.query(`
-                SELECT e.id, e.nombres, e.apellidos, COALESCE(a.estado, 'Presente') as estado_asistencia
-                FROM estudiantes e
-                LEFT JOIN asistencia a ON e.id = a.estudiante_id AND a.fecha = $1
-                WHERE e.curso_id = $2 AND e.estado = 'Activo'
-                ORDER BY e.apellidos ASC
-            `, [fecha, curso_id]);
-
-            estudiantes = resEst.rows;
-
-            estudiantes.forEach(est => {
-                if (est.estado_asistencia === 'Presente') resumen.presentes++;
-                if (est.estado_asistencia === 'Falta') resumen.faltas++;
-                if (est.estado_asistencia === 'Atraso') resumen.atrasos++;
-            });
+        if (curso_id) {
+            const resMat = await db.query('SELECT * FROM materias WHERE curso_id = $1', [curso_id]);
+            materias = resMat.rows;
         }
 
-        res.render('asistencia/index', { 
-            cursos: cursos.rows, 
-            estudiantes, 
-            curso_id: curso_id || '', 
-            fecha: fecha || new Date().toISOString().split('T')[0],
-            resumen
-        });
+        if (curso_id && materia_id && fecha) {
+            const resEst = await db.query(`
+                SELECT e.id, e.apellidos, e.nombres, a.estado
+                FROM estudiantes e
+                LEFT JOIN asistencias a ON e.id = a.estudiante_id AND a.materia_id = $1 AND a.fecha = $2
+                WHERE e.curso_id = $3
+                ORDER BY e.apellidos, e.nombres
+            `, [materia_id, fecha, curso_id]);
+            estudiantes = resEst.rows;
+        }
+
+        res.render('asistencia/index', { cursos: cursos.rows, materias, estudiantes, curso_id, materia_id, fecha });
     } catch (err) {
-        res.redirect('/dashboard');
+        console.error(err);
+        res.status(500).send('Error al cargar la asistencia');
     }
 });
 
-router.post('/guardar', auth, async (req, res) => {
-    const { fecha, asistencia } = req.body; 
-
+router.post('/guardar', verificarAuth, async (req, res) => {
     try {
-        if (asistencia) {
-            for (const estudiante_id in asistencia) {
-                const estado = asistencia[estudiante_id];
-                
-                await db.query(`
-                    INSERT INTO asistencia (estudiante_id, fecha, estado)
-                    VALUES ($1, $2, $3)
-                    ON CONFLICT DO NOTHING
-                `, [estudiante_id, fecha, estado]);
-            }
+        const { materia_id, fecha, asistencia, curso_id } = req.body;
+        
+        for (const [estudiante_id, estado] of Object.entries(asistencia)) {
+            await db.query(`
+                INSERT INTO asistencias (estudiante_id, materia_id, fecha, estado)
+                VALUES ($1, $2, $3, $4)
+                ON CONFLICT (estudiante_id, materia_id, fecha)
+                DO UPDATE SET estado = EXCLUDED.estado
+            `, [estudiante_id, materia_id, fecha, estado]);
         }
-        res.redirect('/asistencia');
+
+        res.redirect(`/asistencia?curso_id=${curso_id}&materia_id=${materia_id}&fecha=${fecha}`);
     } catch (err) {
-        res.redirect('/asistencia');
+        console.error(err);
+        res.status(500).send('Error al registrar la asistencia');
     }
 });
 
