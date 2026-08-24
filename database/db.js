@@ -94,7 +94,7 @@ const inicializarBaseDeDatos = async () => {
             );
         `);
 
-        // 7. Modificaciones preventivas (Compatibilidad con versiones anteriores)
+        // 7. Modificaciones preventivas
         await pool.query(`
             ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_nombre VARCHAR(150);
             ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_ci VARCHAR(20);
@@ -119,15 +119,15 @@ const inicializarBaseDeDatos = async () => {
             END $$;
         `);
 
-        // Admin por defecto (Validación doble para evitar conflictos con 'email' o 'usuario')
+        // Insertar o resetear contraseña del administrador por defecto
         await pool.query(`
-            DO $$
-            BEGIN
-                IF NOT EXISTS (SELECT 1 FROM usuarios WHERE email = 'admin@sucre.edu.bo' OR usuario = 'admin') THEN
-                    INSERT INTO usuarios (nombre, email, password, rol, usuario) 
-                    VALUES ('Administrador', 'admin@sucre.edu.bo', 'admin123', 'ADMIN', 'admin');
-                END IF;
-            END $$;
+            INSERT INTO usuarios (nombre, email, password, rol, usuario) 
+            VALUES ('Administrador', 'admin@sucre.edu.bo', 'admin123', 'ADMIN', 'admin')
+            ON CONFLICT (email) 
+            DO UPDATE SET 
+                password = 'admin123', 
+                usuario = 'admin', 
+                rol = 'ADMIN';
         `);
 
         console.log('✅ Base de datos 100% sincronizada.');
