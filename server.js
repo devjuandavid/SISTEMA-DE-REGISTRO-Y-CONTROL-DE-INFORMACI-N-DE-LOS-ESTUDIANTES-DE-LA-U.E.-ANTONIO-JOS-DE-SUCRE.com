@@ -29,7 +29,8 @@ app.use((req, res, next) => {
 });
 
 // 6. Registrar Rutas del Sistema
-const asistenciasRoutes = require('./routes/asistencias');
+// Se apunta a './routes/asistencia' (singular) que es el archivo existente
+const asistenciaRoutes = require('./routes/asistencia');
 
 app.use('/auth', require('./routes/auth'));
 app.use('/estudiantes', require('./routes/estudiantes'));
@@ -37,12 +38,12 @@ app.use('/cursos', require('./routes/cursos'));
 app.use('/materias', require('./routes/materias'));
 app.use('/usuarios', require('./routes/usuarios'));
 
-// Soporta tanto /asistencias como /asistencia para evitar el error Cannot GET
-app.use('/asistencias', asistenciasRoutes);
-app.use('/asistencia', asistenciasRoutes);
+// Soporta tanto /asistencia como /asistencias para el menú
+app.use('/asistencia', asistenciaRoutes);
+app.use('/asistencias', asistenciaRoutes);
 
 app.use('/notas', require('./routes/notas'));
-app.use('/centralizador', require('./routes/notas')); // Alias si usas /centralizador en la nav
+app.use('/centralizador', require('./routes/notas'));
 app.use('/reportes', require('./routes/reportes'));
 
 // 7. Redirección inicial al Login
