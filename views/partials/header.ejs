@@ -3,26 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>U.E. Antonio José de Sucre</title>
+    <title>Sistema Escolar</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 font-sans min-h-screen flex flex-col">
-<% if (user) { %>
-<nav class="bg-blue-900 text-white shadow-md">
-    <div class="max-w-7xl mx-auto px-4 flex justify-between items-center h-16">
-        <div class="flex items-center gap-3">
-            <div class="w-1.5 h-6 bg-white rounded-full"></div>
-            <span class="font-bold text-lg tracking-wide">U.E. Antonio José de Sucre</span>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <nav class="bg-blue-900 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/dashboard" class="font-bold text-lg">SISTEMA ESCOLAR</a>
+            <div class="flex items-center gap-4 text-sm">
+                <a href="/dashboard" class="hover:text-blue-200">Inicio</a>
+                <a href="/estudiantes" class="hover:text-blue-200">Estudiantes</a>
+                <a href="/notas" class="hover:text-blue-200">Notas</a>
+                <a href="/configuracion" class="hover:text-blue-200">Configuración</a>
+                <a href="/logout" class="bg-red-600 px-3 py-1 rounded hover:bg-red-700">Salir</a>
+            </div>
         </div>
-        <div class="space-x-2 text-sm font-medium">
-            <a href="/dashboard" class="hover:bg-blue-800 px-3 py-2 rounded transition">Inicio</a>
-            <a href="/estudiantes" class="hover:bg-blue-800 px-3 py-2 rounded transition">Estudiantes</a>
-            <a href="/asistencia" class="hover:bg-blue-800 px-3 py-2 rounded transition">Asistencia</a>
-            <a href="/notas" class="hover:bg-blue-800 px-3 py-2 rounded transition">Notas</a>
-            <a href="/reportes" class="hover:bg-blue-800 px-3 py-2 rounded transition">Reportes</a>
-            <a href="/logout" class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded font-bold transition">Cerrar Sesión</a>
-        </div>
-    </div>
-</nav>
-<% } %>
-<main class="max-w-7xl mx-auto mt-6 px-4 flex-grow w-full">
+    </nav>
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
