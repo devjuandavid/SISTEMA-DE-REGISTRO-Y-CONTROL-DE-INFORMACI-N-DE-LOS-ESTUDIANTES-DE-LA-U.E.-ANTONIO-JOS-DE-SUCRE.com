@@ -1,25 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
-const { verificarAuth, esAdmin } = require('../middleware/auth');
+const { verificarAuth } = require('../middleware/auth');
 
-// Obtener todas las materias con su profesor y curso
+// Listar Materias con su Curso y Profesor asignado
 router.get('/', verificarAuth, async (req, res) => {
     try {
-        const resultMaterias = await db.query(`
-            SELECT m.*, c.grado, c.paralelo, c.nivel, u.nombre as profesor_nombre
+        const materias = await db.query(`
+            SELECT m.id, m.nombre, c.grado, c.paralelo, c.nivel, u.nombre as profesor 
             FROM materias m
             LEFT JOIN cursos c ON m.curso_id = c.id
             LEFT JOIN usuarios u ON m.profesor_id = u.id
-            ORDER BY m.nombre ASC
+            ORDER BY c.grado, c.paralelo, m.nombre
         `);
-        const resultCursos = await db.query('SELECT * FROM cursos ORDER BY grado, paralelo');
-        const resultProfesores = await db.query("SELECT * FROM usuarios WHERE rol = 'PROFESOR' OR rol = 'ADMIN'");
+        const cursos = await db.query('SELECT * FROM cursos ORDER BY grado, paralelo');
+        const profesores = await db.query("SELECT * FROM usuarios WHERE rol = 'PROFESOR' OR rol = 'ADMIN' ORDER BY nombre");
 
         res.render('materias/index', { 
-            materias: resultMaterias.rows, 
-            cursos: resultCursos.rows, 
-            profesores: resultProfesores.rows 
+            materias: materias.rows, 
+            cursos: cursos.rows, 
+            profesores: profesores.rows 
         });
     } catch (err) {
         console.error(err);
@@ -27,8 +27,8 @@ router.get('/', verificarAuth, async (req, res) => {
     }
 });
 
-// Crear nueva materia
-router.post('/nuevo', verificarAuth, esAdmin, async (req, res) => {
+// Crear Materia
+router.post('/crear', verificarAuth, async (req, res) => {
     try {
         const { nombre, curso_id, profesor_id } = req.body;
         await db.query(
@@ -38,14 +38,31 @@ router.post('/nuevo', verificarAuth, esAdmin, async (req, res) => {
         res.redirect('/materias');
     } catch (err) {
         console.error(err);
-        res.status(500).send('Error al registrar materia');
+        res.status(500).send('Error al crear materia');
     }
 });
 
-// Eliminar materia
-router.get('/eliminar/:id', verificarAuth, esAdmin, async (req, res) => {
+// Editar Materia
+router.post('/editar/:id', verificarAuth, async (req, res) => {
     try {
-        await db.query('DELETE FROM materias WHERE id = $1', [req.params.id]);
+        const { id } = req.params;
+        const { nombre, curso_id, profesor_id } = req.body;
+        await db.query(
+            'UPDATE materias SET nombre=$1, curso_id=$2, profesor_id=$3 WHERE id=$4',
+            [nombre, curso_id, profesor_id || null, id]
+        );
+        res.redirect('/materias');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al editar materia');
+    }
+});
+
+// Eliminar Materia
+router.post('/eliminar/:id', verificarAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.query('DELETE FROM materias WHERE id = $1', [id]);
         res.redirect('/materias');
     } catch (err) {
         console.error(err);

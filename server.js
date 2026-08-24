@@ -1,6 +1,13 @@
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const cursosRouter = require('./routes/cursos');
+const materiasRouter = require('./routes/materias');
+const usuariosRouter = require('./routes/usuarios');
+
+app.use('/cursos', cursosRouter);
+app.use('/materias', materiasRouter);
+app.use('/usuarios', usuariosRouter);
 require('dotenv').config();
 
 const app = express();
