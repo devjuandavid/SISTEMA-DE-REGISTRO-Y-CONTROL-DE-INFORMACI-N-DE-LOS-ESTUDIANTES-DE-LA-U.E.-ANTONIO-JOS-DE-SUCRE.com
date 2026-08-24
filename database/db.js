@@ -8,45 +8,23 @@ const pool = new Pool({
 
 const initDb = async () => {
     try {
-        // 1. Crear tabla de Usuarios si no existe
+        // 1. Usuarios
         await pool.query(`
             CREATE TABLE IF NOT EXISTS usuarios (
                 id SERIAL PRIMARY KEY,
                 usuario VARCHAR(50) UNIQUE NOT NULL,
-                password TEXT NOT NULL
+                password TEXT NOT NULL,
+                nombre_completo VARCHAR(100) DEFAULT 'Usuario',
+                rol VARCHAR(20) DEFAULT 'profesor'
             );
         `);
-        <%- include('../partials/header') %>
 
-<!-- Tu contenido HTML del módulo -->
-
-<%- include('../partials/footer') %>
-        // Asegurar columnas en la tabla notas si ya existía la tabla previamente
-            await pool.query(`
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS trimestre INT DEFAULT 1;
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS ser NUMERIC(5,2) DEFAULT 0;
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS saber NUMERIC(5,2) DEFAULT 0;
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS hacer NUMERIC(5,2) DEFAULT 0;
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS autoevaluacion NUMERIC(5,2) DEFAULT 0;
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS nota_trimestral NUMERIC(5,2) DEFAULT 0;
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS cualitativo TEXT;
-            `);
-        // AGREGAR COLUMNAS SI YA EXISTÍA LA TABLA VIEJA
         await pool.query(`
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nombre_completo VARCHAR(100) DEFAULT 'Usuario';
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS rol VARCHAR(20) DEFAULT 'profesor';
         `);
-          // Asegurar columnas en la tabla notas si fue creada anteriormente
-            await pool.query(`
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS trimestre INT DEFAULT 1;
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS ser NUMERIC(5,2) DEFAULT 0;
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS saber NUMERIC(5,2) DEFAULT 0;
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS hacer NUMERIC(5,2) DEFAULT 0;
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS autoevaluacion NUMERIC(5,2) DEFAULT 0;
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS nota_trimestral NUMERIC(5,2) DEFAULT 0;
-                ALTER TABLE notas ADD COLUMN IF NOT EXISTS cualitativo TEXT;
-            `);
-        // 2. Tabla de Cursos y Turnos
+
+        // 2. Cursos
         await pool.query(`
             CREATE TABLE IF NOT EXISTS cursos (
                 id SERIAL PRIMARY KEY,
@@ -57,7 +35,7 @@ const initDb = async () => {
             );
         `);
 
-        // 3. Tabla de Materias / Áreas
+        // 3. Materias
         await pool.query(`
             CREATE TABLE IF NOT EXISTS materias (
                 id SERIAL PRIMARY KEY,
@@ -66,7 +44,7 @@ const initDb = async () => {
             );
         `);
 
-        // 4. Asignación de Materias a Profesores
+        // 4. Asignación de Materias
         await pool.query(`
             CREATE TABLE IF NOT EXISTS profesor_materia (
                 id SERIAL PRIMARY KEY,
@@ -76,7 +54,7 @@ const initDb = async () => {
             );
         `);
 
-        // 5. Tabla de Estudiantes (RUDE Bolivia)
+        // 5. Estudiantes
         await pool.query(`
             CREATE TABLE IF NOT EXISTS estudiantes (
                 id SERIAL PRIMARY KEY,
@@ -106,25 +84,33 @@ const initDb = async () => {
             );
         `);
 
-        // 7. Cuadro de Evaluación (Ley 070)
+        // 7. Notas
         await pool.query(`
             CREATE TABLE IF NOT EXISTS notas (
                 id SERIAL PRIMARY KEY,
                 estudiante_id INT REFERENCES estudiantes(id) ON DELETE CASCADE,
                 materia_id INT REFERENCES materias(id) ON DELETE CASCADE,
-                trimestre INT,
+                trimestre INT DEFAULT 1,
                 ser NUMERIC(5,2) DEFAULT 0,
                 saber NUMERIC(5,2) DEFAULT 0,
                 hacer NUMERIC(5,2) DEFAULT 0,
                 autoevaluacion NUMERIC(5,2) DEFAULT 0,
-                nota_trimestral NUMERIC(5,2),
+                nota_trimestral NUMERIC(5,2) DEFAULT 0,
                 cualitativo TEXT
             );
         `);
 
-        // --- INSERTAR DATOS INICIALES ---
+        await pool.query(`
+            ALTER TABLE notas ADD COLUMN IF NOT EXISTS trimestre INT DEFAULT 1;
+            ALTER TABLE notas ADD COLUMN IF NOT EXISTS ser NUMERIC(5,2) DEFAULT 0;
+            ALTER TABLE notas ADD COLUMN IF NOT EXISTS saber NUMERIC(5,2) DEFAULT 0;
+            ALTER TABLE notas ADD COLUMN IF NOT EXISTS hacer NUMERIC(5,2) DEFAULT 0;
+            ALTER TABLE notas ADD COLUMN IF NOT EXISTS autoevaluacion NUMERIC(5,2) DEFAULT 0;
+            ALTER TABLE notas ADD COLUMN IF NOT EXISTS nota_trimestral NUMERIC(5,2) DEFAULT 0;
+            ALTER TABLE notas ADD COLUMN IF NOT EXISTS cualitativo TEXT;
+        `);
 
-        // Insertar Director/Admin
+        // Usuarios iniciales
         const passAdmin = bcrypt.hashSync('admin123', 10);
         await pool.query(`
             INSERT INTO usuarios (usuario, password, nombre_completo, rol) 
@@ -132,7 +118,6 @@ const initDb = async () => {
             ON CONFLICT (usuario) DO NOTHING;
         `, [passAdmin]);
 
-        // Insertar Profesor de prueba
         const passProfe = bcrypt.hashSync('profe123', 10);
         await pool.query(`
             INSERT INTO usuarios (usuario, password, nombre_completo, rol) 
