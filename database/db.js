@@ -96,10 +96,17 @@ const inicializarBaseDeDatos = async () => {
 
         // 7. Modificaciones preventivas
         await pool.query(`
+            -- Estudiantes: Campos opcionales y de tutor
             ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_nombre VARCHAR(150);
             ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_ci VARCHAR(20);
             ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_telefono VARCHAR(20);
+            ALTER TABLE estudiantes ALTER COLUMN fecha_nacimiento DROP NOT NULL;
             
+            -- Materias: Asegurar columnas relaciones
+            ALTER TABLE materias ADD COLUMN IF NOT EXISTS curso_id INT REFERENCES cursos(id) ON DELETE SET NULL;
+            ALTER TABLE materias ADD COLUMN IF NOT EXISTS profesor_id INT REFERENCES usuarios(id) ON DELETE SET NULL;
+
+            -- Usuarios
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nombre VARCHAR(100);
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email VARCHAR(100);
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS password VARCHAR(255);
@@ -107,6 +114,7 @@ const inicializarBaseDeDatos = async () => {
             ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS usuario VARCHAR(100);
             ALTER TABLE usuarios ALTER COLUMN usuario DROP NOT NULL;
 
+            -- Cursos
             ALTER TABLE cursos ADD COLUMN IF NOT EXISTS sie VARCHAR(20) DEFAULT '70620085';
         `);
 
@@ -120,7 +128,7 @@ const inicializarBaseDeDatos = async () => {
             END $$;
         `);
 
-        // Insertar o resincronizar contraseña del admin evitando colisiones de índices
+        // Insertar o resincronizar contraseña del admin
         await pool.query(`
             DO $$ 
             BEGIN

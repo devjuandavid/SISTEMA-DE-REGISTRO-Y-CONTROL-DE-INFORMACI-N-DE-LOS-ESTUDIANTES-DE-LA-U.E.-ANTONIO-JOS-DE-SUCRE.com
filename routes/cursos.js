@@ -14,20 +14,23 @@ router.get('/', verificarAuth, async (req, res) => {
     }
 });
 
-// Crear Curso
-router.post('/crear', verificarAuth, async (req, res) => {
+// Crear Curso (Soporta tanto /nuevo como /crear para evitar fallos en el HTML)
+const crearCursoHandler = async (req, res) => {
     try {
         const { nivel, grado, paralelo, turno, sie } = req.body;
         await db.query(
             'INSERT INTO cursos (nivel, grado, paralelo, turno, sie) VALUES ($1, $2, $3, $4, $5)',
-            [nivel, grado, paralelo, turno || 'MAÑANA', sie || '70620085']
+            [nivel || 'SECUNDARIA', grado, paralelo, turno || 'MAÑANA', sie || '70620085']
         );
         res.redirect('/cursos');
     } catch (err) {
         console.error(err);
         res.status(500).send('Error al crear curso');
     }
-});
+};
+
+router.post('/nuevo', verificarAuth, crearCursoHandler);
+router.post('/crear', verificarAuth, crearCursoHandler);
 
 // Editar Curso
 router.post('/editar/:id', verificarAuth, async (req, res) => {
@@ -45,8 +48,8 @@ router.post('/editar/:id', verificarAuth, async (req, res) => {
     }
 });
 
-// Eliminar Curso
-router.post('/eliminar/:id', verificarAuth, async (req, res) => {
+// Eliminar Curso (Soporta GET y POST)
+const eliminarCursoHandler = async (req, res) => {
     try {
         const { id } = req.params;
         await db.query('DELETE FROM cursos WHERE id = $1', [id]);
@@ -55,6 +58,9 @@ router.post('/eliminar/:id', verificarAuth, async (req, res) => {
         console.error(err);
         res.status(500).send('Error al eliminar curso');
     }
-});
+};
+
+router.get('/eliminar/:id', verificarAuth, eliminarCursoHandler);
+router.post('/eliminar/:id', verificarAuth, eliminarCursoHandler);
 
 module.exports = router;
