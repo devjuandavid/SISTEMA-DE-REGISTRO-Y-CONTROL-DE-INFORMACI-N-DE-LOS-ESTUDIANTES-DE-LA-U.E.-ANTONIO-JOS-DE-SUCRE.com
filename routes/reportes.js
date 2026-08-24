@@ -2,22 +2,38 @@ const express = require('express');
 const router = express.Router();
 const db = require('../database/db');
 
-const auth = (req, res, next) => {
-    if (!req.session.user) return res.redirect('/login');
-    next();
-};
-
-router.get('/', auth, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
-        const result = await db.query(`
-            SELECT e.rude, e.ci, e.nombres, e.apellidos, e.estado, c.grado, c.paralelo, c.turno
-            FROM estudiantes e
-            LEFT JOIN cursos c ON e.curso_id = c.id
-            ORDER BY e.apellidos ASC
-        `);
-        res.render('reportes/index', { estudiantes: result.rows });
+        const { curso_id, materia_id, tipo = 'boletin' } = req.query;
+        const cursos = await db.query('SELECT * FROM cursos ORDER BY grado, paralelo');
+        const materias = await db.query('SELECT * FROM materias ORDER BY nombre');
+
+        let estudiantes = [];
+        if (curso_id) {
+            const query = `
+                SELECT e.*, 
+                    COALESCE(n.ser, 0) AS ser, COALESCE(n.saber, 0) AS saber, 
+                    COALESCE(n.hacer, 0) AS hacer, COALESCE(n.autoevaluacion, 0) AS autoevaluacion,
+                    COALESCE(n.nota_trimestral, 0) AS nota_trimestral, COALESCE(n.cualitativo, '') AS cualitativo
+                FROM estudiantes e
+                LEFT JOIN notas n ON e.id = n.estudiante_id AND n.materia_id = $2
+                WHERE e.curso_id = $1 ORDER BY e.apellidos, e.nombres
+            `;
+            const result = await db.query(query, [curso_id, materia_id || 0]);
+            estudiantes = result.rows;
+        }
+
+        res.render('reportes/index', {
+            cursos: cursos.rows,
+            materias: materias.rows,
+            estudiantes,
+            curso_id: curso_id || '',
+            materia_id: materia_id || '',
+            tipo
+        });
     } catch (err) {
-        res.render('reportes/index', { estudiantes: [] });
+        console.error(err);
+        res.status(500).send('Error en reportes');
     }
 });
 
