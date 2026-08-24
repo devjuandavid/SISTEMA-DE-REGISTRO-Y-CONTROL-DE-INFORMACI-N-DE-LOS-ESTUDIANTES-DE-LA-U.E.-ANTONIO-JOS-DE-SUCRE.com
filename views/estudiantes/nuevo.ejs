@@ -1,0 +1,61 @@
+<%- include('../partials/header') %>
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Registrar Nuevo Estudiante</h2>
+    <% if (error) { %>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"><%= error %></div>
+    <% } %>
+    <form action="/estudiantes/nuevo" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label class="block font-medium mb-1">Código RUDE</label>
+            <input type="text" name="rude" required class="w-full border rounded px-3 py-2">
+        </div>
+        <div>
+            <label class="block font-medium mb-1">Carnet de Identidad (CI)</label>
+            <input type="text" name="ci" required class="w-full border rounded px-3 py-2">
+        </div>
+        <div>
+            <label class="block font-medium mb-1">Nombres</label>
+            <input type="text" name="nombres" required class="w-full border rounded px-3 py-2">
+        </div>
+        <div>
+            <label class="block font-medium mb-1">Apellidos</label>
+            <input type="text" name="apellidos" required class="w-full border rounded px-3 py-2">
+        </div>
+        <div>
+            <label class="block font-medium mb-1">Género</label>
+            <select name="genero" class="w-full border rounded px-3 py-2">
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
+            </select>
+        </div>
+        <div>
+            <label class="block font-medium mb-1">Fecha de Nacimiento</label>
+            <input type="date" name="fecha_nacimiento" required class="w-full border rounded px-3 py-2">
+        </div>
+        <div>
+            <label class="block font-medium mb-1">Lugar de Nacimiento</label>
+            <input type="text" name="lugar_nacimiento" class="w-full border rounded px-3 py-2">
+        </div>
+        <div>
+            <label class="block font-medium mb-1">Curso</label>
+            <select name="curso_id" class="w-full border rounded px-3 py-2">
+                <% cursos.forEach(c => { %>
+                    <option value="<%= c.id %>"><%= c.grado %> "<%= c.paralelo %>" - <%= c.turno %></option>
+                <% }) %>
+            </select>
+        </div>
+        <div class="md:col-span-2">
+            <label class="block font-medium mb-1">Estado</label>
+            <select name="estado" class="w-full border rounded px-3 py-2">
+                <option value="Activo">Activo</option>
+                <option value="Retirado">Retirado</option>
+                <option value="Trasladado">Trasladado</option>
+            </select>
+        </div>
+        <div class="md:col-span-2 mt-4 flex gap-4">
+            <button type="submit" class="bg-blue-900 text-white px-6 py-2 rounded font-semibold hover:bg-blue-800">Guardar</button>
+            <a href="/estudiantes" class="bg-gray-500 text-white px-6 py-2 rounded font-semibold hover:bg-gray-600">Cancelar</a>
+        </div>
+    </form>
+</div>
+<%- include('../partials/footer') %>

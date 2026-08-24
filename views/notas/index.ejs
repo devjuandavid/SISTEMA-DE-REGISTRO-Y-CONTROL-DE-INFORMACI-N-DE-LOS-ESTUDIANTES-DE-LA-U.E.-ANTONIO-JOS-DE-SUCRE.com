@@ -1,0 +1,61 @@
+<%- include('../partials/header') %>
+<h1 class="text-3xl font-bold mb-6 text-gray-800">Registro de Calificaciones</h1>
+
+<form method="GET" action="/notas" class="bg-white p-4 rounded shadow mb-6 flex flex-wrap gap-4">
+    <div>
+        <label class="block font-medium mb-1">Curso</label>
+        <select name="curso_id" class="border rounded px-3 py-2" required>
+            <option value="">Seleccionar Curso</option>
+            <% cursos.forEach(c => { %>
+                <option value="<%= c.id %>" <%= curso_id == c.id ? 'selected' : '' %>><%= c.grado %> "<%= c.paralelo %>"</option>
+            <% }) %>
+        </select>
+    </div>
+    <div>
+        <label class="block font-medium mb-1">Materia</label>
+        <select name="materia_id" class="border rounded px-3 py-2" required>
+            <option value="">Seleccionar Materia</option>
+            <% materias.forEach(m => { %>
+                <option value="<%= m.id %>" <%= materia_id == m.id ? 'selected' : '' %>><%= m.nombre %></option>
+            <% }) %>
+        </select>
+    </div>
+    <div>
+        <label class="block font-medium mb-1">Periodo</label>
+        <select name="periodo" class="border rounded px-3 py-2">
+            <option value="1er Trimestre" <%= periodo === '1er Trimestre' ? 'selected' : '' %>>1er Trimestre</option>
+            <option value="2do Trimestre" <%= periodo === '2do Trimestre' ? 'selected' : '' %>>2do Trimestre</option>
+            <option value="3er Trimestre" <%= periodo === '3er Trimestre' ? 'selected' : '' %>>3er Trimestre</option>
+        </select>
+    </div>
+    <div class="flex items-end">
+        <button type="submit" class="bg-blue-900 text-white px-4 py-2 rounded font-semibold hover:bg-blue-800">Cargar Notas</button>
+    </div>
+</form>
+
+<% if (estudiantes.length > 0) { %>
+<form action="/notas/guardar" method="POST" class="bg-white p-6 rounded shadow">
+    <input type="hidden" name="materia_id" value="<%= materia_id %>">
+    <input type="hidden" name="periodo" value="<%= periodo %>">
+    <table class="w-full text-left border-collapse mb-4">
+        <thead>
+            <tr class="bg-gray-100 border-b">
+                <th class="p-3">Estudiante</th>
+                <th class="p-3 w-48">Nota (1 - 100)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% estudiantes.forEach(est => { %>
+                <tr class="border-b">
+                    <td class="p-3 font-medium"><%= est.apellidos %> <%= est.nombres %></td>
+                    <td class="p-3">
+                        <input type="number" min="1" max="100" name="notas[<%= est.id %>]" value="<%= est.nota %>" class="border rounded px-3 py-1 w-full text-center font-bold">
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+    <button type="submit" class="bg-amber-600 text-white px-6 py-2 rounded font-semibold hover:bg-amber-700">Guardar Calificaciones</button>
+</form>
+<% } %>
+<%- include('../partials/footer') %>

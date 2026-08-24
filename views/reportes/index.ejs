@@ -1,0 +1,35 @@
+<%- include('../partials/header') %>
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Reporte General de Estudiantes</h1>
+    <button onclick="window.print()" class="bg-purple-700 text-white px-4 py-2 rounded font-semibold hover:bg-purple-800">Imprimir / Guardar en PDF</button>
+</div>
+
+<div class="bg-white p-6 rounded-lg shadow">
+    <h2 class="text-xl font-bold text-center text-blue-900 mb-4">UNIDAD EDUCATIVA ANTONIO JOSÉ DE SUCRE</h2>
+    <p class="text-center text-gray-600 mb-6">Nómina General de Inscritos - Gestión 2026</p>
+    <table class="w-full text-left border-collapse border">
+        <thead>
+            <tr class="bg-gray-100 border-b">
+                <th class="p-2 border">Nº</th>
+                <th class="p-2 border">RUDE</th>
+                <th class="p-2 border">CI</th>
+                <th class="p-2 border">Nombre Completo</th>
+                <th class="p-2 border">Curso</th>
+                <th class="p-2 border">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% estudiantes.forEach((est, index) => { %>
+                <tr class="border-b">
+                    <td class="p-2 border"><%= index + 1 %></td>
+                    <td class="p-2 border font-mono text-sm"><%= est.rude %></td>
+                    <td class="p-2 border"><%= est.ci %></td>
+                    <td class="p-2 border"><%= est.apellidos %> <%= est.nombres %></td>
+                    <td class="p-2 border"><%= est.grado %> "<%= est.paralelo %>" (<%= est.turno %>)</td>
+                    <td class="p-2 border"><%= est.estado %></td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+<%- include('../partials/footer') %>

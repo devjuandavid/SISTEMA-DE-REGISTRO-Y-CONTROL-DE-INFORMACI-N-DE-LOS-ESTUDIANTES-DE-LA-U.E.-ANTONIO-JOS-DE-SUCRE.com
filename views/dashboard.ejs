@@ -1,0 +1,22 @@
+<%- include('partials/header') %>
+<h1 class="text-3xl font-bold mb-6 text-gray-800">Panel Principal</h1>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-lg shadow border-l-4 border-blue-900">
+        <h3 class="text-gray-500 font-semibold">Total Estudiantes Registrados</h3>
+        <p class="text-4xl font-bold text-gray-800"><%= totalEstudiantes %></p>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow border-l-4 border-green-600">
+        <h3 class="text-gray-500 font-semibold">Cursos Habilitados</h3>
+        <p class="text-4xl font-bold text-gray-800"><%= totalCursos %></p>
+    </div>
+</div>
+<div class="bg-white p-6 rounded-lg shadow">
+    <h2 class="text-xl font-bold mb-4 text-gray-800">Accesos Rápidos</h2>
+    <div class="flex flex-wrap gap-4">
+        <a href="/estudiantes/nuevo" class="bg-blue-900 text-white px-4 py-2 rounded font-medium hover:bg-blue-800">Registrar Estudiante</a>
+        <a href="/asistencia" class="bg-green-700 text-white px-4 py-2 rounded font-medium hover:bg-green-800">Tomar Asistencia</a>
+        <a href="/notas" class="bg-amber-600 text-white px-4 py-2 rounded font-medium hover:bg-amber-700">Registrar Notas</a>
+        <a href="/reportes" class="bg-purple-700 text-white px-4 py-2 rounded font-medium hover:bg-purple-800">Generar Reportes</a>
+    </div>
+</div>
+<%- include('partials/footer') %>
