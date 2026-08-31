@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Boletín de Promoción Preliminar - SIE</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 10px; margin: 10px; }
+        .header-table, .data-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+        .data-table th, .data-table td { border: 1px solid #000; padding: 4px; text-align: left; }
+        .data-table th { background-color: #f2f2f2; text-align: center; }
+        .title { text-align: center; font-weight: bold; font-size: 13px; margin: 5px 0; }
+        .sub-title { text-align: center; font-weight: bold; font-size: 11px; }
+        
+        @media print {
+            .no-print { display: none; }
+            @page { size: landscape; margin: 1cm; }
+        }
+    </style>
+</head>
+<body>
+
+    <button onclick="window.print()" class="no-print" style="padding: 8px 15px; margin-bottom: 10px; cursor: pointer;">
+        🖨️ Imprimir / Guardar en PDF
+    </button>
+
+    <table class="header-table">
+        <tr>
+            <td width="30%">
+                <strong>MINISTERIO DE EDUCACIÓN</strong><br>
+                Sistema de Información Educativa
+            </td>
+            <td class="title">
+                BOLETÍN DE PROMOCIÓN PRELIMINAR<br>
+                <span style="font-size: 11px;"><%= curso.nivel.toUpperCase() %></span>
+            </td>
+            <td width="25%" text-align="right">
+                <strong>GESTIÓN:</strong> 2026<br>
+                <strong>CÓDIGO SIE:</strong> <%= curso.sie %><br>
+                <strong>TURNO:</strong> <%= curso.turno %>
+            </td>
+        </tr>
+    </table>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Nro.</th>
+                <th>Paterno</th>
+                <th>Materno</th>
+                <th>Nombres</th>
+                <th>Rude</th>
+                <th>Gen</th>
+                <th>Fecha Nac</th>
+                <th>C.I.</th>
+                <th>Estado</th>
+                <th>Desarrollo de la Comunicación, Lenguajes y Artes</th>
+                <th>Desarrollo del Conocimiento y de la Producción</th>
+                <th>Desarrollo Bio Psicomotriz</th>
+                <th>Desarrollo Socio Cultural, Afectivo y Espiritual</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% estudiantes.forEach((est, index) => { %>
+                <tr>
+                    <td text-align="center"><%= index + 1 %></td>
+                    <td><%= est.apellidos.split(' ')[0] || '' %></td>
+                    <td><%= est.apellidos.split(' ')[1] || '' %></td>
+                    <td><%= est.nombres %></td>
+                    <td><%= est.rude %></td>
+                    <td text-align="center"><%= est.genero %></td>
+                    <td><%= est.fecha_nacimiento ? new Date(est.fecha_nacimiento).toLocaleDateString('es-BO') : '' %></td>
+                    <td><%= est.ci %></td>
+                    <td text-align="center"><%= est.matricula %></td>
+                    <td><%= est.desarrollo_comunicacion || 'SIN EVALUACIÓN' %></td>
+                    <td><%= est.desarrollo_conocimiento || 'SIN EVALUACIÓN' %></td>
+                    <td><%= est.desarrollo_biosicomotriz || 'SIN EVALUACIÓN' %></td>
+                    <td><%= est.desarrollo_sociocultural || 'SIN EVALUACIÓN' %></td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+
+    <!-- Firmas -->
+    <br><br>
+    <table width="100%" style="text-align: center; margin-top: 30px;">
+        <tr>
+            <td width="33%">____________________________________<br>FIRMA Y SELLO MAESTRA(O)</td>
+            <td width="33%">____________________________________<br>FIRMA Y SELLO DIRECTOR(A) U.E.</td>
+            <td width="33%">____________________________________<br>FIRMA Y SELLO DIRECTOR(A) DISTRITAL</td>
+        </tr>
+    </table>
+
+</body>
+</html>

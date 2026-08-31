@@ -7,21 +7,9 @@ const pool = new Pool({
 
 const inicializarBaseDeDatos = async () => {
     try {
-        console.log('🔄 Sincronizando BD con RUDE, Notas y Asistencias...');
+        console.log('🔄 Sincronizando BD para módulo SIE y Boletines...');
 
-        // 1. Usuarios
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS usuarios (
-                id SERIAL PRIMARY KEY,
-                nombre VARCHAR(100) NOT NULL,
-                email VARCHAR(100) UNIQUE NOT NULL,
-                password VARCHAR(255) NOT NULL,
-                rol VARCHAR(20) DEFAULT 'PROFESOR',
-                creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        `);
-
-        // 2. Cursos
+        // 1. Cursos con metadatos SIE
         await pool.query(`
             CREATE TABLE IF NOT EXISTS cursos (
                 id SERIAL PRIMARY KEY,
@@ -33,17 +21,7 @@ const inicializarBaseDeDatos = async () => {
             );
         `);
 
-        // 3. Materias
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS materias (
-                id SERIAL PRIMARY KEY,
-                nombre VARCHAR(100) NOT NULL,
-                curso_id INT REFERENCES cursos(id) ON DELETE CASCADE,
-                profesor_id INT REFERENCES usuarios(id) ON DELETE SET NULL
-            );
-        `);
-
-        // 4. Estudiantes (RUDE Completo)
+        // 2. Estudiantes completos para RUDE Oficial
         await pool.query(`
             CREATE TABLE IF NOT EXISTS estudiantes (
                 id SERIAL PRIMARY KEY,
@@ -65,87 +43,29 @@ const inicializarBaseDeDatos = async () => {
             );
         `);
 
-        // 5. Asistencias
+        // 3. Centralizador y Boletines (Evaluación Cualitativa y Cuantitativa)
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS asistencias (
+            CREATE TABLE IF NOT EXISTS evaluaciones_cualitativas (
                 id SERIAL PRIMARY KEY,
                 estudiante_id INT REFERENCES estudiantes(id) ON DELETE CASCADE,
-                materia_id INT REFERENCES materias(id) ON DELETE CASCADE,
-                fecha DATE NOT NULL,
-                estado VARCHAR(20) CHECK (estado IN ('PRESENTE', 'FALTA', 'LICENCIA', 'ATRASO')),
-                UNIQUE(estudiante_id, materia_id, fecha)
-            );
-        `);
-
-        // 6. Centralizador de Notas
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS notas (
-                id SERIAL PRIMARY KEY,
-                estudiante_id INT REFERENCES estudiantes(id) ON DELETE CASCADE,
-                materia_id INT REFERENCES materias(id) ON DELETE CASCADE,
                 trimestre INT CHECK (trimestre IN (1, 2, 3)),
-                saber DECIMAL(5,2) DEFAULT 0,
-                hacer DECIMAL(5,2) DEFAULT 0,
-                ser DECIMAL(5,2) DEFAULT 0,
-                decidir DECIMAL(5,2) DEFAULT 0,
-                autoevaluacion DECIMAL(5,2) DEFAULT 0,
-                nota_final DECIMAL(5,2) DEFAULT 0,
-                UNIQUE(estudiante_id, materia_id, trimestre)
+                desarrollo_comunicacion TEXT,
+                desarrollo_conocimiento TEXT,
+                desarrollo_biosicomotriz TEXT,
+                desarrollo_sociocultural TEXT,
+                UNIQUE(estudiante_id, trimestre)
             );
         `);
 
-        // 7. Modificaciones preventivas
+        // Resincronizar secuencias
         await pool.query(`
-            -- Estudiantes: Campos opcionales y de tutor
-            ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_nombre VARCHAR(150);
-            ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_ci VARCHAR(20);
-            ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tutor_telefono VARCHAR(20);
-            ALTER TABLE estudiantes ALTER COLUMN fecha_nacimiento DROP NOT NULL;
-            
-            -- Materias: Asegurar columnas relaciones
-            ALTER TABLE materias ADD COLUMN IF NOT EXISTS curso_id INT REFERENCES cursos(id) ON DELETE SET NULL;
-            ALTER TABLE materias ADD COLUMN IF NOT EXISTS profesor_id INT REFERENCES usuarios(id) ON DELETE SET NULL;
-
-            -- Usuarios
-            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS nombre VARCHAR(100);
-            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email VARCHAR(100);
-            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS password VARCHAR(255);
-            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS rol VARCHAR(20) DEFAULT 'PROFESOR';
-            ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS usuario VARCHAR(100);
-            ALTER TABLE usuarios ALTER COLUMN usuario DROP NOT NULL;
-
-            -- Cursos
-            ALTER TABLE cursos ADD COLUMN IF NOT EXISTS sie VARCHAR(20) DEFAULT '70620085';
+            SELECT setval('cursos_id_seq', COALESCE((SELECT MAX(id) FROM cursos), 1));
+            SELECT setval('estudiantes_id_seq', COALESCE((SELECT MAX(id) FROM estudiantes), 1));
         `);
 
-        // Asegurar restricción UNIQUE en email
-        await pool.query(`
-            DO $$ 
-            BEGIN 
-                IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'usuarios_email_key') THEN
-                    ALTER TABLE usuarios ADD CONSTRAINT usuarios_email_key UNIQUE (email);
-                END IF;
-            END $$;
-        `);
-
-        // Insertar o resincronizar contraseña del admin
-        await pool.query(`
-            DO $$ 
-            BEGIN
-                IF EXISTS (SELECT 1 FROM usuarios WHERE usuario = 'admin' OR email = 'admin@sucre.edu.bo') THEN
-                    UPDATE usuarios 
-                    SET password = 'admin123', usuario = 'admin', email = 'admin@sucre.edu.bo', rol = 'ADMIN' 
-                    WHERE usuario = 'admin' OR email = 'admin@sucre.edu.bo';
-                ELSE
-                    INSERT INTO usuarios (nombre, email, password, rol, usuario) 
-                    VALUES ('Administrador', 'admin@sucre.edu.bo', 'admin123', 'ADMIN', 'admin');
-                END IF;
-            END $$;
-        `);
-
-        console.log('✅ Base de datos 100% sincronizada.');
+        console.log('✅ Base de datos para reportes SIE lista.');
     } catch (err) {
-        console.error('❌ Error al sincronizar BD:', err);
+        console.error('❌ Error al inicializar BD:', err);
     }
 };
 
