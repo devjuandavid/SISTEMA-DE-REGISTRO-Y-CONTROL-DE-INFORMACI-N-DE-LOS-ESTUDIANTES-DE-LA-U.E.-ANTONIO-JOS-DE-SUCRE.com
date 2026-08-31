@@ -3,62 +3,88 @@ const router = express.Router();
 const db = require('../database/db');
 const { verificarAuth } = require('../middleware/auth');
 
+// Vista del Centralizador / Planilla de Notas
 router.get('/', verificarAuth, async (req, res) => {
     try {
         const { curso_id, materia_id, trimestre } = req.query;
+        const trimestreSel = trimestre || 1;
+
+        // Cargar listas para los selectores
         const cursos = await db.query('SELECT * FROM cursos ORDER BY grado, paralelo');
+        
         let materias = [];
         let estudiantes = [];
 
         if (curso_id) {
-            const resMat = await db.query('SELECT * FROM materias WHERE curso_id = $1', [curso_id]);
-            materias = resMat.rows;
+            const materiasResult = await db.query(
+                'SELECT * FROM materias WHERE curso_id = $1 OR curso_id IS NULL ORDER BY nombre',
+                [curso_id]
+            );
+            materias = materiasResult.rows;
+
+            if (materia_id) {
+                // Obtener estudiantes junto con sus notas si existen
+                const estudiantesResult = await db.query(`
+                    SELECT e.id, e.apellidos, e.nombres, e.rude,
+                           COALESCE(n.ser, 0) as ser,
+                           COALESCE(n.saber, 0) as saber,
+                           COALESCE(n.hacer, 0) as hacer,
+                           COALESCE(n.decidir, 0) as decidir,
+                           COALESCE(n.autoevaluacion, 0) as autoevaluacion,
+                           COALESCE(n.nota_final, 0) as nota_final
+                    FROM estudiantes e
+                    LEFT JOIN notas n ON e.id = n.estudiante_id 
+                         AND n.materia_id = $1 AND n.trimestre = $2
+                    WHERE e.curso_id = $3
+                    ORDER BY e.apellidos, e.nombres
+                `, [materia_id, trimestreSel, curso_id]);
+
+                estudiantes = estudiantesResult.rows;
+            }
         }
 
-        if (curso_id && materia_id && trimestre) {
-            const resEst = await db.query(`
-                SELECT e.id, e.apellidos, e.nombres, 
-                       COALESCE(n.saber, 0) as saber, COALESCE(n.hacer, 0) as hacer, 
-                       COALESCE(n.ser, 0) as ser, COALESCE(n.decidir, 0) as decidir, 
-                       COALESCE(n.autoevaluacion, 0) as autoevaluacion, COALESCE(n.nota_final, 0) as nota_final
-                FROM estudiantes e
-                LEFT JOIN notas n ON e.id = n.estudiante_id AND n.materia_id = $1 AND n.trimestre = $2
-                WHERE e.curso_id = $3
-                ORDER BY e.apellidos, e.nombres
-            `, [materia_id, trimestre, curso_id]);
-            estudiantes = resEst.rows;
-        }
-
-        res.render('notas/index', { cursos: cursos.rows, materias, estudiantes, curso_id, materia_id, trimestre });
+        res.render('notas/index', {
+            cursos: cursos.rows,
+            materias: materias,
+            estudiantes: estudiantes,
+            curso_id: curso_id || '',
+            materia_id: materia_id || '',
+            trimestre: trimestreSel
+        });
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Error en centralizador de notas');
+        console.error('Error detallado en centralizador de notas:', err);
+        res.status(500).send('Error al cargar la planilla de notas. Revisa que la tabla "notas" exista en PostgreSQL.');
     }
 });
 
+// Guardar Notas
 router.post('/guardar', verificarAuth, async (req, res) => {
     try {
-        const { materia_id, trimestre, notas, curso_id } = req.body;
+        const { curso_id, materia_id, trimestre, notas } = req.body;
 
-        for (const [estudiante_id, datos] of Object.entries(notas)) {
-            const saber = parseFloat(datos.saber) || 0;
-            const hacer = parseFloat(datos.hacer) || 0;
-            const ser = parseFloat(datos.ser) || 0;
-            const decidir = parseFloat(datos.decidir) || 0;
-            const autoevaluacion = parseFloat(datos.autoevaluacion) || 0;
-            const nota_final = saber + hacer + ser + decidir + autoevaluacion;
+        if (notas && typeof notas === 'object') {
+            for (const [estudiante_id, datos] of Object.entries(notas)) {
+                const ser = parseInt(datos.ser) || 0;
+                const saber = parseInt(datos.saber) || 0;
+                const hacer = parseInt(datos.hacer) || 0;
+                const decidir = parseInt(datos.decidir) || 0;
+                const autoevaluacion = parseInt(datos.autoevaluacion) || 0;
+                const nota_final = ser + saber + hacer + decidir + autoevaluacion;
 
-            await db.query(`
-                INSERT INTO notas (estudiante_id, materia_id, trimestre, saber, hacer, ser, decidir, autoevaluacion, nota_final)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                ON CONFLICT (estudiante_id, materia_id, trimestre)
-                DO UPDATE SET saber = $4, hacer = $5, ser = $6, decidir = $7, autoevaluacion = $8, nota_final = $9
-            `, [estudiante_id, materia_id, trimestre, saber, hacer, ser, decidir, autoevaluacion, nota_final]);
+                await db.query(`
+                    INSERT INTO notas (estudiante_id, materia_id, trimestre, ser, saber, hacer, decidir, autoevaluacion, nota_final)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                    ON CONFLICT (estudiante_id, materia_id, trimestre)
+                    DO UPDATE SET ser=EXCLUDED.ser, saber=EXCLUDED.saber, hacer=EXCLUDED.hacer, 
+                                  decidir=EXCLUDED.decidir, autoevaluacion=EXCLUDED.autoevaluacion, 
+                                  nota_final=EXCLUDED.nota_final
+                `, [estudiante_id, materia_id, trimestre, ser, saber, hacer, decidir, autoevaluacion, nota_final]);
+            }
         }
 
         res.redirect(`/notas?curso_id=${curso_id}&materia_id=${materia_id}&trimestre=${trimestre}`);
     } catch (err) {
-        console.error(err);
+        console.error('Error al guardar notas:', err);
         res.status(500).send('Error al guardar las notas');
     }
 });

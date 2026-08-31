@@ -56,7 +56,22 @@ const inicializarBaseDeDatos = async () => {
                 UNIQUE(estudiante_id, trimestre)
             );
         `);
-
+        // 4. Notas Cuantitativas
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS notas (
+                id SERIAL PRIMARY KEY,
+                estudiante_id INT REFERENCES estudiantes(id) ON DELETE CASCADE,
+                materia_id INT REFERENCES materias(id) ON DELETE CASCADE,
+                trimestre INT CHECK (trimestre IN (1, 2, 3)),
+                ser INT DEFAULT 0,
+                saber INT DEFAULT 0,
+                hacer INT DEFAULT 0,
+                decidir INT DEFAULT 0,
+                autoevaluacion INT DEFAULT 0,
+                nota_final INT DEFAULT 0,
+                CONSTRAINT nota_estudiante_materia_trimestre UNIQUE (estudiante_id, materia_id, trimestre)
+            );
+        `);
         // Resincronizar secuencias
         await pool.query(`
             SELECT setval('cursos_id_seq', COALESCE((SELECT MAX(id) FROM cursos), 1));
